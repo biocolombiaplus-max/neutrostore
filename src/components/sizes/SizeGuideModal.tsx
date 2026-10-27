@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import type { Fit, Gender } from '@/lib/types';
 import { CloseIcon } from '../icons';
 import SizeGuide from './SizeGuide';
+import ClothingSizeGuide from './ClothingSizeGuide';
 
 export default function SizeGuideModal({
   open,
@@ -13,6 +14,7 @@ export default function SizeGuideModal({
   availableSizes,
   onPickSize,
   productTitle,
+  clothing = false,
 }: {
   open: boolean;
   onClose: () => void;
@@ -21,6 +23,8 @@ export default function SizeGuideModal({
   availableSizes?: string[];
   onPickSize?: (size: string) => void;
   productTitle?: string;
+  // Ropa (camisetas...): tabla S–XXL en vez de la guía de calzado.
+  clothing?: boolean;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -54,6 +58,19 @@ export default function SizeGuideModal({
             <CloseIcon />
           </button>
         </div>
+        {clothing ? (
+          <ClothingSizeGuide
+            availableSizes={availableSizes}
+            onPickSize={
+              onPickSize
+                ? (s) => {
+                    onPickSize(s);
+                    onClose();
+                  }
+                : undefined
+            }
+          />
+        ) : (
         <SizeGuide
           fit={fit}
           gender={gender}
@@ -67,6 +84,7 @@ export default function SizeGuideModal({
               : undefined
           }
         />
+        )}
       </div>
     </div>
   );

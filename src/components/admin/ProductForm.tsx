@@ -14,6 +14,7 @@ import { uploadProductImage, deleteProductImage, type ImageCropMode } from '@/li
 import { resizeForUpload } from '@/lib/imageCrop';
 import { detectShoeColors, type DetectedColor } from '@/lib/colorDetect';
 import { usSizeFor } from '@/lib/sizes';
+import { CLOTHING_SIZES, isFootwear, productTypeOf, sortSizeList } from '@/lib/productTypes';
 import ColorSwatch from '@/components/ColorSwatch';
 import ColorEditor, { ColorChipButton, toneSummary, type ColorValue } from '@/components/admin/ColorEditor';
 
@@ -39,7 +40,7 @@ const QUICK_COLORS: ProductColor[] = [
   { name: 'Negro / Goma', hex: '#111111', hex2: '#B5835A' },
   { name: 'Gris / Blanco', hex: '#9CA3AF', hex2: '#FFFFFF' },
 ];
-const COMMON_COLLECTIONS = ['deportivos', 'urbanos', 'running', 'basket', 'sandalias', 'botas'];
+const COMMON_COLLECTIONS = ['plataformas', 'planas', 'tachas', 'tacon', 'estampadas', 'basicas', 'oversize', 'polo'];
 // Un color de un solo tono no guarda "hex2" (Firestore no acepta undefined).
 function stripHex2(color: ProductColor): ProductColor {
   if (color.hex2 && color.hex2.toLowerCase() !== color.hex.toLowerCase()) return color;
@@ -47,11 +48,11 @@ function stripHex2(color: ProductColor): ProductColor {
   return rest;
 }
 
-const sortSizes = (list: string[]) => [...list].sort((a, b) => Number(a) - Number(b) || a.localeCompare(b));
+const sortSizes = sortSizeList;
 
 export default function ProductForm({ product }: { product?: Product }) {
   const router = useRouter();
-  const { brands: knownBrands, payments: paySettings } = useSiteSettings();
+  const { brands: knownBrands, payments: paySettings, productTypes } = useSiteSettings();
   const isEditing = !!product;
 
   const [title, setTitle] = useState(product?.title ?? '');
@@ -61,7 +62,7 @@ export default function ProductForm({ product }: { product?: Product }) {
   const [price, setPrice] = useState(product?.price?.toString() ?? String(paySettings.defaultPrice || ''));
   const [codPrice, setCodPrice] = useState(product?.codPrice ? String(product.codPrice) : '');
   const [compareAtPrice, setCompareAtPrice] = useState(product?.compareAtPrice?.toString() ?? '');
-  const [collectionName, setCollectionName] = useState(product?.collection ?? 'urbanos');
+  const [collectionName, setCollectionName] = useState(product?.collection ?? '');
   const [brand, setBrand] = useState(product?.brand ?? '');
   const [line, setLine] = useState(product?.line ?? '');
   // Colecciones que ya existen por marca (de los demás productos), para sugerirlas.
@@ -86,7 +87,19 @@ export default function ProductForm({ product }: { product?: Product }) {
   const [stock, setStock] = useState(product?.stock?.toString() ?? '20');
   const [featured, setFeatured] = useState(product?.featured ?? false);
   const [active, setActive] = useState(product?.active ?? true);
-  const [sizes, setSizes] = useState<string[]>(product?.sizes ?? []);
+  const [category, setCategory] = useState(() => productTypeOf(product ?? {}, productTypes).value);
+  const currentType = productTypeOf({ category }, productTypes);
+  const footwear = isFootwear(currentType);
+  const [sizes, setSizes] = useState<string[]>(product?.sizes ?? currentType.sizes);
+  // Tallas que se muestran como botones según el tipo de producto.
+  const sizeOptions = footwear ? COMMON_SIZES : currentType.sizeSystem === 'ropa' ? CLOTHING_SIZES : currentType.sizes;
+
+  function changeCategory(value: string) {
+    const next = productTypeOf({ category: value }, productTypes);
+    setCategory(next.value);
+    // Al cambiar de tipo se proponen sus tallas (calzado ↔ ropa no se mezclan).
+    setSizes(next.sizes);
+  }
   const [colors, setColors] = useState<ProductColor[]>(product?.colors ?? []);
   const [images, setImages] = useState<string[]>(product?.images ?? []);
   const [soldCount, setSoldCount] = useState(product?.soldCount?.toString() ?? '');
@@ -275,6 +288,7 @@ export default function ProductForm({ product }: { product?: Product }) {
       brand: brand.trim(),
       line: line.trim() || suggestLine(title, brand),
       gender,
+      category,
       fit,
       isNew,
       description,
@@ -530,15 +544,35 @@ export default function ProductForm({ product }: { product?: Product }) {
         </div>
 
         <div className="rounded-card bg-white p-6 shadow-soft">
-          <h2 className="mb-4 font-heading text-lg font-bold text-ink">Tallas y colores</h2>
+          <h2 className="mb-4 font-heading text-lg font-bold text-ink">Tipo, tallas y colores</h2>
+
+          <p className="mb-2 text-sm font-semibold text-ink">Tipo de producto</p>
+          <div className="mb-5 flex flex-wrap gap-2">
+            {productTypes.map((t) => (
+              <button
+                key={t.value}
+                type="button"
+                onClick={() => changeCategory(t.value)}
+                className={`rounded-full px-4 py-2 text-sm font-bold ring-1 transition-colors ${
+                  category === t.value ? 'bg-ink text-white ring-ink' : 'bg-white text-ink ring-border hover:ring-ink'
+                }`}
+              >
+                {t.icon} {t.label}
+              </button>
+            ))}
+            <a href="/admin/configuracion#tipos" className="self-center text-xs font-bold text-muted underline">
+              + Crear otro tipo
+            </a>
+          </div>
 
           <p className="mb-1 text-sm font-semibold text-ink">Tallas disponibles</p>
           <p className="mb-2 text-xs text-muted">
-            Número grande = talla Colombia (CO). Debajo, su equivalente US ({gender === 'mujer' ? 'mujer' : 'hombre'}), que también verá el
-            cliente.
+            {footwear
+              ? `Número grande = talla Colombia (CO). Debajo, su equivalente US (${gender === 'mujer' ? 'mujer' : 'hombre'}), que también verá el cliente.`
+              : 'Toca las tallas que tienes disponibles. Puedes agregar otras abajo (ej: 28, 30, única).'}
           </p>
           <div className="mb-3 flex flex-wrap gap-2">
-            {SIZE_PRESETS.map((preset) => (
+            {(footwear ? SIZE_PRESETS : []).map((preset) => (
               <button
                 key={preset.label}
                 type="button"
@@ -550,7 +584,7 @@ export default function ProductForm({ product }: { product?: Product }) {
             ))}
           </div>
           <div className="mb-3 flex flex-wrap gap-2">
-            {COMMON_SIZES.map((s) => (
+            {sizeOptions.map((s) => (
               <button
                 key={s}
                 type="button"
@@ -560,13 +594,15 @@ export default function ProductForm({ product }: { product?: Product }) {
                 }`}
               >
                 <span className="text-sm font-bold">{s}</span>
-                <span className={`mt-1 text-[10px] font-semibold ${sizes.includes(s) ? 'text-white/80' : 'text-muted'}`}>
-                  US {usSizeFor(s, gender)}
-                </span>
+                {footwear && (
+                  <span className={`mt-1 text-[10px] font-semibold ${sizes.includes(s) ? 'text-white/80' : 'text-muted'}`}>
+                    US {usSizeFor(s, gender)}
+                  </span>
+                )}
               </button>
             ))}
             {sizes
-              .filter((s) => !COMMON_SIZES.includes(s))
+              .filter((s) => !sizeOptions.includes(s))
               .map((s) => (
                 <button
                   key={s}

@@ -60,6 +60,9 @@ export interface Product {
   // Si está vacía se deduce del nombre del modelo.
   line?: string;
   gender: Gender;
+  // Tipo de producto (value de un ProductType de la configuración: "sandalias",
+  // "camisetas"...). Vacío = el primer tipo configurado.
+  category?: string;
   description: string;
   price: number;
   compareAtPrice?: number | null;
@@ -80,6 +83,24 @@ export interface Product {
   reviews?: ProductReview[];
   createdAt?: number;
   updatedAt?: number;
+}
+
+// Tipo de producto de la tienda multimarca (Sandalias, Camisetas, ...). Se
+// crean y editan desde el panel. El sistema de tallas decide qué ayudas ve el
+// cliente: guía de tallas por centímetros solo para calzado.
+export type SizeSystem = 'calzado' | 'ropa' | 'unica';
+
+export interface ProductType {
+  value: string;
+  label: string;
+  icon: string;
+  sizeSystem: SizeSystem;
+  // Tallas que se proponen al crear un producto de este tipo.
+  sizes: string[];
+  // Foto de la tarjeta del tipo en la portada.
+  image: string;
+  // Texto corto de la tarjeta (ej: "Plataformas, slides y tachas").
+  sub: string;
 }
 
 export type ProductInput = Omit<Product, 'id' | 'createdAt' | 'updatedAt'>;
@@ -283,6 +304,7 @@ export interface PaymentLogo {
 
 export interface SiteSettings {
   storeName: string;
+  productTypes: ProductType[];
   logoUrl: string;
   logoHeight: number;
   whatsappCountryCode: string;

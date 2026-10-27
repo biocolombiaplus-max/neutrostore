@@ -13,6 +13,9 @@ import Faq from '@/components/home/Faq';
 import HomeCTA from '@/components/HomeCTA';
 import RealDeliveries from '@/components/RealDeliveries';
 import ChatProofs from '@/components/ChatProofs';
+import { ProductTypeRails, ProductTypeTiles } from '@/components/home/ProductTypeShowcase';
+import { productTypeValue } from '@/lib/productTypes';
+import type { Product } from '@/lib/types';
 import { getActiveProductsServer } from '@/lib/productsServer';
 import { slimProduct } from '@/lib/productMap';
 import { featuredTabs } from '@/lib/featuredTabs';
@@ -24,6 +27,14 @@ export default async function HomePage() {
   // Solo viajan en el HTML los zapatos que se muestran (livianos).
   const tabs = featuredTabs(products);
   const featured = Array.from(new Map([...tabs.vendidos, ...tabs.nuevos, ...tabs.ofertas].map((p) => [p.id, slimProduct(p)])).values());
+  // Vitrinas por tipo de producto (Sandalias, Camisetas...): los más vendidos de cada uno.
+  const typeCounts: Record<string, number> = {};
+  const rails: Record<string, Product[]> = {};
+  for (const p of [...products].sort((a, b) => (b.soldCount ?? 0) - (a.soldCount ?? 0))) {
+    const t = productTypeValue(p, settings.productTypes);
+    typeCounts[t] = (typeCounts[t] ?? 0) + 1;
+    if ((rails[t] ??= []).length < 8) rails[t].push(slimProduct(p));
+  }
   const starProducts = products.filter((p) => isStarBrand(settings.featuredBrand, p.brand)).map(slimProduct);
 
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://neutrostore.vercel.app').replace(/\/$/, '');
@@ -32,12 +43,12 @@ export default async function HomePage() {
   const jsonLd = [
     {
       '@context': 'https://schema.org',
-      '@type': 'ShoeStore',
+      '@type': 'ClothingStore',
       name: settings.storeName,
       url: siteUrl,
       image: `${siteUrl}/og-image.jpg`,
       logo: settings.logoUrl ? (settings.logoUrl.startsWith('http') ? settings.logoUrl : `${siteUrl}${settings.logoUrl}`) : `${siteUrl}/icon-512`,
-      description: 'Tienda de sandalias para mujer en Colombia: plataformas, slides y sandalias con tachas de Guess y más marcas. Envío a todo el país y pago contra entrega.',
+      description: 'Tienda multimarca en Colombia: sandalias para mujer, camisetas premium y más, de Guess, Monastery y otras marcas. Envío a todo el país y pago contra entrega.',
       areaServed: { '@type': 'Country', name: 'Colombia' },
       currenciesAccepted: 'COP',
       paymentAccepted: 'Transferencia bancaria, depósito, pago contra entrega',
@@ -59,11 +70,13 @@ export default async function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />
       <Hero />
       <TrustBar />
-      {/* Los zapatos primero: quien llega del anuncio ve productos de inmediato. */}
+      <ProductTypeTiles counts={typeCounts} />
+      {/* Los productos primero: quien llega del anuncio ve productos de inmediato. */}
       <FeaturedProducts initialProducts={featured} />
+      <ProductTypeRails rails={rails} />
+      <CategoryTiles />
       <ChatProofs />
       <RealDeliveries />
-      <CategoryTiles />
       <FeaturedBrandSpotlight initialProducts={starProducts} />
       <BrandStrip />
       <PaymentMethods />

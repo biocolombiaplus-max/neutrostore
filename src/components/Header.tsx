@@ -14,9 +14,9 @@ import SafeImage from './SafeImage';
 import MobileMenu from './MobileMenu';
 import { CartIcon, ChevronIcon, CloseIcon, MenuIcon, SearchIcon } from './icons';
 
-// La tienda es de sandalias para mujer: "Mujer" va primero y "Hombre"
-// queda al final del menú, discreto.
-const MAIN_LINKS = [{ href: '/catalogo?genero=mujer', label: 'Mujer' }];
+// Tienda multimarca: primero los tipos de producto (Sandalias, Camisetas...,
+// desde la configuración), luego "Mujer"; "Hombre" queda al final, discreto.
+const GENDER_LINKS = [{ href: '/catalogo?genero=mujer', label: 'Mujer' }];
 
 export default function Header() {
   const router = useRouter();
@@ -27,7 +27,8 @@ export default function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [scrolled, setScrolled] = useState(false);
-  const { storeName, logoUrl, logoHeight, brands: allBrands, collectionsMenu, featuredBrand } = useSiteSettings();
+  const { storeName, logoUrl, logoHeight, brands: allBrands, collectionsMenu, featuredBrand, productTypes } = useSiteSettings();
+  const mainLinks = [...productTypes.map((t) => ({ href: `/catalogo?tipo=${encodeURIComponent(t.value)}`, label: t.label })), ...GENDER_LINKS];
   const starOn = featuredBrand.enabled && !!featuredBrand.name;
   const brands = allBrands.filter((b) => !isStarBrand(featuredBrand, b));
 
@@ -121,7 +122,7 @@ export default function Header() {
         </Link>
 
         <nav ref={menuRef} className="hidden flex-1 items-center gap-0.5 whitespace-nowrap text-[13px] font-extrabold uppercase tracking-wider text-ink lg:flex xl:gap-1">
-          {MAIN_LINKS.map((link) => (
+          {mainLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
@@ -184,7 +185,7 @@ export default function Header() {
                   {collectionsMenu.map((c) => (
                     <Link
                       key={c.value}
-                      href={`/catalogo?genero=mujer&estilo=${encodeURIComponent(c.value)}`}
+                      href={`/catalogo?estilo=${encodeURIComponent(c.value)}`}
                       className="block rounded-lg px-3 py-2.5 text-sm font-bold normal-case tracking-normal text-ink transition-colors hover:bg-cream-alt hover:text-primary"
                     >
                       {c.label}

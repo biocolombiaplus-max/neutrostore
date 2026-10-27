@@ -15,6 +15,7 @@ import SafeImage from '@/components/SafeImage';
 import { brandMatches, brandTagline, canonicalBrands, isStarBrand, productLine } from '@/lib/brand';
 import ShoeStage from '@/components/brand/ShoeStage';
 import StarSeal from '@/components/brand/StarSeal';
+import { isFootwear, productTypeOf, productTypeValue, sortSizeList } from '@/lib/productTypes';
 
 type SortOption = 'relevancia' | 'vendidos' | 'nuevo' | 'precio_asc' | 'precio_desc' | 'descuento';
 
@@ -74,17 +75,36 @@ function FilterChip({ active, onClick, children }: { active: boolean; onClick: (
   );
 }
 
+// Pestañas grandes de tipo de producto (Todo / Sandalias / Camisetas...).
+function TypePill({ active, onClick, label, count }: { active: boolean; onClick: () => void; label: string; count: number }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={classNames(
+        'flex shrink-0 items-center gap-2 rounded-full border-2 px-5 py-2.5 text-xs font-extrabold uppercase tracking-wider transition-all',
+        active ? 'border-ink bg-ink text-white shadow-lift' : 'border-border bg-white text-ink hover:border-ink',
+      )}
+    >
+      {label}
+      <span className={classNames('rounded-full px-1.5 py-0.5 text-[10px]', active ? 'bg-primary text-ink' : 'bg-cream-alt text-muted')}>{count}</span>
+    </button>
+  );
+}
+
 function CatalogoContent({ initialProducts }: { initialProducts?: Product[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { collectionsMenu, featuredBrand } = useSiteSettings();
+  const { collectionsMenu, featuredBrand, productTypes } = useSiteSettings();
   const [products, setProducts] = useState<Product[] | null>(initialProducts?.length ? initialProducts : null);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   // Los filtros viven en la URL: así los enlaces del menú ("Hombre",
   // "Nike", "Ofertas"...) llegan ya filtrados y se pueden compartir.
   const gender = searchParams.get('genero') ?? '';
+  const tipo = searchParams.get('tipo') ?? '';
+  const activeType = productTypes.find((t) => t.value === tipo);
   const brand = searchParams.get('marca') ?? '';
   const line = searchParams.get('linea') ?? '';
   const style = searchParams.get('estilo') ?? searchParams.get('collection') ?? '';
@@ -106,6 +126,11 @@ function CatalogoContent({ initialProducts }: { initialProducts?: Product[] }) {
     if (key === 'estilo') params.delete('collection');
     // Cada marca tiene sus propias colecciones.
     if (key === 'marca') params.delete('linea');
+    // Cada tipo de producto tiene sus propias tallas y estilos.
+    if (key === 'tipo') {
+      params.delete('talla');
+      params.delete('estilo');
+    }
     router.replace(`${pathname}${params.toString() ? `?${params}` : ''}`, { scroll: false });
   }
 
@@ -141,18 +166,32 @@ function CatalogoContent({ initialProducts }: { initialProducts?: Product[] }) {
   const starView = !!brand && isStarBrand(featuredBrand, brand);
   // Si todos los modelos cuestan lo mismo, el filtro de precio no sirve.
   const hasPriceRange = new Set((products ?? []).map((p) => p.price)).size > 1;
+  // Productos del tipo elegido (Sandalias, Camisetas...): de ahí salen los
+  // estilos y tallas que se ofrecen como filtro.
+  const typeProducts = useMemo(
+    () => (products ?? []).filter((p) => !tipo || productTypeValue(p, productTypes) === tipo),
+    [products, tipo, productTypes],
+  );
+  const typeCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const p of products ?? []) {
+      const v = productTypeValue(p, productTypes);
+      counts.set(v, (counts.get(v) ?? 0) + 1);
+    }
+    return counts;
+  }, [products, productTypes]);
+  const shownTypes = productTypes.filter((t) => (typeCounts.get(t.value) ?? 0) > 0);
   const styles = useMemo(() => {
-    const present = new Set((products ?? []).map((p) => p.collection));
+    const present = new Set(typeProducts.map((p) => p.collection));
     const fromMenu = collectionsMenu.filter((c) => present.has(c.value));
     const extra = Array.from(present)
       .filter((v) => v && !fromMenu.some((c) => c.value === v))
       .map((v) => ({ label: v.charAt(0).toUpperCase() + v.slice(1), value: v }));
     return [...fromMenu, ...extra];
-  }, [products, collectionsMenu]);
-  const sizes = useMemo(
-    () => Array.from(new Set((products ?? []).flatMap((p) => p.sizes))).sort((a, b) => Number(a) - Number(b)),
-    [products],
-  );
+  }, [typeProducts, collectionsMenu]);
+  const sizes = useMemo(() => sortSizeList(Array.from(new Set(typeProducts.flatMap((p) => p.sizes)))), [typeProducts]);
+  // Guía de tallas por centímetros solo tiene sentido si lo que se ve es calzado.
+  const footwearView = activeType ? isFootwear(activeType) : typeProducts.every((p) => isFootwear(productTypeOf(p, productTypes)));
 
   // Colecciones de la marca elegida, creadas solas a partir de sus modelos
   // (campo "Colección" del producto o, si está vacío, deducida del nombre).
@@ -186,6 +225,7 @@ function CatalogoContent({ initialProducts }: { initialProducts?: Product[] }) {
   const filtered = useMemo(() => {
     if (!products) return [];
     let list = products;
+    if (tipo) list = list.filter((p) => productTypeValue(p, productTypes) === tipo);
     if (gender) list = list.filter((p) => p.gender === gender || p.gender === 'unisex');
     if (brand) list = list.filter((p) => brandMatches(p.brand, brand));
     if (brand && line) list = list.filter((p) => productLine(p).toLowerCase() === line.toLowerCase());
@@ -198,21 +238,38 @@ function CatalogoContent({ initialProducts }: { initialProducts?: Product[] }) {
     }
     if (q) {
       const needle = normalize(q);
-      list = list.filter((p) => normalize(`${p.brand} ${p.title} ${p.collection}`).includes(needle));
+      list = list.filter((p) => normalize(`${p.brand} ${p.title} ${p.collection} ${productTypeOf(p, productTypes).label}`).includes(needle));
     }
     return sortProducts(list, sort);
-  }, [products, gender, brand, line, style, size, onlyOffers, price, q, sort]);
+  }, [products, tipo, productTypes, gender, brand, line, style, size, onlyOffers, price, q, sort]);
 
-  const activeCount = [gender, brand, style, size, price, onlyOffers ? '1' : '', q].filter(Boolean).length;
+  const activeCount = [tipo, gender, brand, style, size, price, onlyOffers ? '1' : '', q].filter(Boolean).length;
   const genderLabel = GENDERS.find((g) => g.value === gender)?.label;
   const title = q
     ? `Resultados para “${q}”`
     : onlyOffers
       ? 'Ofertas 🔥'
-      : (brand && line ? `${brand} ${line}` : brand) || (genderLabel ? `Zapatos de ${genderLabel.toLowerCase()}` : 'Todo el catálogo');
+      : (brand && line ? `${brand} ${line}` : brand) ||
+        (activeType
+          ? `${activeType.label}${genderLabel ? ` para ${genderLabel.toLowerCase()}` : ''}`
+          : genderLabel
+            ? `Para ${genderLabel.toLowerCase()}`
+            : 'Todo el catálogo');
 
   const filtersPanel = (
     <div className="space-y-7">
+      {shownTypes.length > 1 && (
+        <div>
+          <p className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.2em] text-muted">Tipo de producto</p>
+          <div className="flex flex-wrap gap-2">
+            {shownTypes.map((t) => (
+              <FilterChip key={t.value} active={tipo === t.value} onClick={() => toggleParam('tipo', t.value)}>
+                {t.icon} {t.label}
+              </FilterChip>
+            ))}
+          </div>
+        </div>
+      )}
       <div>
         <p className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.2em] text-muted">Para</p>
         <div className="flex flex-wrap gap-2">
@@ -267,10 +324,12 @@ function CatalogoContent({ initialProducts }: { initialProducts?: Product[] }) {
       {sizes.length > 0 && (
         <div>
           <div className="mb-3 flex items-center justify-between">
-            <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-muted">Talla (CO)</p>
-            <Link href="/guia-de-tallas" className="text-[11px] font-bold text-ink underline">
-              ¿Mi talla?
-            </Link>
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-muted">{footwearView ? 'Talla (CO)' : 'Talla'}</p>
+            {footwearView && (
+              <Link href="/guia-de-tallas" className="text-[11px] font-bold text-ink underline">
+                ¿Mi talla?
+              </Link>
+            )}
           </div>
           <div className="grid grid-cols-5 gap-2">
             {sizes.map((s) => (
@@ -351,6 +410,20 @@ function CatalogoContent({ initialProducts }: { initialProducts?: Product[] }) {
           </nav>
           <h1 className="section-title">{title}</h1>
           <p className="mt-2 text-sm text-muted">Envío a toda Colombia · Paga por transferencia o contra entrega</p>
+          {shownTypes.length > 1 && (
+            <div className="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+              <TypePill active={!tipo} onClick={() => setParam('tipo', null)} label="Todo" count={products?.length ?? 0} />
+              {shownTypes.map((t) => (
+                <TypePill
+                  key={t.value}
+                  active={tipo === t.value}
+                  onClick={() => setParam('tipo', t.value)}
+                  label={`${t.icon} ${t.label}`}
+                  count={typeCounts.get(t.value) ?? 0}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
       )}

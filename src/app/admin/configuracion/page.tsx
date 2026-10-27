@@ -17,7 +17,11 @@ import type {
   CollectionMenuItem,
   PaymentLogo,
   CategoryTile,
+  ProductType,
+  SizeSystem,
 } from '@/lib/types';
+import { CLOTHING_SIZES, sortSizeList } from '@/lib/productTypes';
+import { slugify } from '@/lib/utils';
 import { PaymentLogoChip, CourierLogo } from '@/components/brand/PaymentLogos';
 import PhotoBackupCard from '@/components/admin/PhotoBackupCard';
 
@@ -50,7 +54,7 @@ function Section({
 
 // Selector para saltar directo a una sección (útil en el celular, donde la
 // página es muy larga). Las secciones con fotos llevan 📷.
-const PHOTO_SECTIONS = ['General', 'Transportadora', 'Marca estrella', 'Hero', 'Compra por categoría', 'Entregas reales', 'Capturas de WhatsApp', 'Testimonios'];
+const PHOTO_SECTIONS = ['General', 'Tipos de producto', 'Transportadora', 'Marca estrella', 'Hero', 'Compra por categoría', 'Entregas reales', 'Capturas de WhatsApp', 'Testimonios'];
 
 function SectionJump() {
   const [titles, setTitles] = useState<string[]>([]);
@@ -937,9 +941,18 @@ export default function ConfiguracionPage() {
         />
       </Section>
 
+      <div id="tipos" className="scroll-mt-4">
+        <Section
+          title="Tipos de producto"
+          description="Lo que vende la tienda: Sandalias, Camisetas… y los que agregues (gorras, jeans, bolsos, perfumes). Cada tipo aparece en el menú, en la portada y como filtro del catálogo, con sus propias tallas. El primero de la lista es el principal."
+        >
+          <ProductTypesEditor types={settings.productTypes} onChange={(types) => update('productTypes', types)} />
+        </Section>
+      </div>
+
       <Section
-        title="Menú de estilos"
-        description='Aparece como "Estilos" en el menú y como filtro del catálogo. El "Valor" debe coincidir exactamente con el campo "Estilo / colección" de cada producto.'
+        title="Menú de colecciones"
+        description='Aparece como "Colecciones" en el menú y como filtro del catálogo. El "Valor" debe coincidir exactamente con el campo "Estilo / colección" de cada producto.'
       >
         <ListEditor<CollectionMenuItem>
           items={settings.collectionsMenu}
@@ -1213,11 +1226,12 @@ export default function ConfiguracionPage() {
               setTiles(next);
             };
             const linkOptions = [
+              ...settings.productTypes.map((t) => ({ label: `Tipo: ${t.label}`, href: `/catalogo?tipo=${encodeURIComponent(t.value)}` })),
               { label: 'Mujer', href: '/catalogo?genero=mujer' },
               { label: 'Hombre', href: '/catalogo?genero=hombre' },
               { label: 'Ofertas', href: '/catalogo?ofertas=1' },
               { label: 'Todo el catálogo', href: '/catalogo' },
-              ...settings.collectionsMenu.map((c) => ({ label: `Colección mujer: ${c.label}`, href: `/catalogo?genero=mujer&estilo=${encodeURIComponent(c.value)}` })),
+              ...settings.collectionsMenu.map((c) => ({ label: `Colección: ${c.label}`, href: `/catalogo?estilo=${encodeURIComponent(c.value)}` })),
               ...settings.brands.map((b) => ({ label: `Marca: ${b}`, href: `/catalogo?marca=${encodeURIComponent(b)}` })),
             ];
             const known = linkOptions.some((o) => o.href === tile.href);
@@ -1690,6 +1704,120 @@ function ListEditor<T>({
         className="text-sm font-semibold text-primary hover:underline"
       >
         + Agregar
+      </button>
+    </div>
+  );
+}
+
+const SIZE_SYSTEMS: { value: SizeSystem; label: string; sizes: string[] }[] = [
+  { value: 'calzado', label: 'Calzado (tallas 34–45, guía por centímetros)', sizes: ['35', '36', '37', '38', '39', '40'] },
+  { value: 'ropa', label: 'Ropa (XS, S, M, L, XL, XXL)', sizes: ['S', 'M', 'L', 'XL', 'XXL'] },
+  { value: 'unica', label: 'Talla única o personalizada', sizes: ['Única'] },
+];
+
+// Editor de los tipos de producto (tarjetas con nombre, ícono, tallas y foto).
+function ProductTypesEditor({ types, onChange }: { types: ProductType[]; onChange: (types: ProductType[]) => void }) {
+  const edit = (i: number, patch: Partial<ProductType>) => onChange(types.map((t, j) => (j === i ? { ...t, ...patch } : t)));
+  const move = (i: number, dir: -1 | 1) => {
+    const j = i + dir;
+    if (j < 0 || j >= types.length) return;
+    const next = [...types];
+    [next[i], next[j]] = [next[j], next[i]];
+    onChange(next);
+  };
+  return (
+    <div className="space-y-3">
+      {types.map((t, i) => (
+        <div key={i} className="rounded-2xl border border-border p-4">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm font-extrabold text-ink">
+              {t.icon} {t.label || 'Nuevo tipo'} {i === 0 && <span className="ml-1 rounded-full bg-gold-50 px-2 py-0.5 text-[10px] text-primary-dark">Principal</span>}
+            </p>
+            <div className="flex items-center gap-1 text-sm">
+              <button type="button" onClick={() => move(i, -1)} className="rounded-lg px-2 py-1 hover:bg-cream-alt" aria-label="Subir">↑</button>
+              <button type="button" onClick={() => move(i, 1)} className="rounded-lg px-2 py-1 hover:bg-cream-alt" aria-label="Bajar">↓</button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (types.length > 1 && window.confirm(`¿Quitar el tipo "${t.label}"? Los productos de este tipo pasarán al tipo principal.`)) {
+                    onChange(types.filter((_, j) => j !== i));
+                  }
+                }}
+                className="rounded-lg px-2 py-1 text-urgent hover:bg-urgent/10"
+                aria-label="Eliminar"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+          <div className="mt-3 grid gap-3 sm:grid-cols-[80px_1fr_1fr]">
+            <Field label="Ícono">
+              <input value={t.icon} onChange={(e) => edit(i, { icon: e.target.value })} className={inputClass} placeholder="👕" />
+            </Field>
+            <Field label="Nombre (ej: Camisetas)">
+              <input
+                value={t.label}
+                onChange={(e) => edit(i, { label: e.target.value, ...(t.value ? {} : { value: slugify(e.target.value) }) })}
+                onBlur={() => !t.value && t.label && edit(i, { value: slugify(t.label) })}
+                className={inputClass}
+              />
+            </Field>
+            <Field label="Texto corto de la tarjeta">
+              <input value={t.sub} onChange={(e) => edit(i, { sub: e.target.value })} className={inputClass} placeholder="Ej: Algodón premium" />
+            </Field>
+          </div>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <Field label="Tipo de tallas">
+              <select
+                value={t.sizeSystem}
+                onChange={(e) => {
+                  const sys = SIZE_SYSTEMS.find((x) => x.value === e.target.value) ?? SIZE_SYSTEMS[0];
+                  edit(i, { sizeSystem: sys.value, sizes: sys.sizes });
+                }}
+                className={inputClass}
+              >
+                {SIZE_SYSTEMS.map((x) => (
+                  <option key={x.value} value={x.value}>
+                    {x.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Tallas que se proponen al crear un producto (separadas por coma)">
+              <input
+                defaultValue={t.sizes.join(', ')}
+                key={t.sizeSystem + t.value}
+                onBlur={(e) =>
+                  edit(i, {
+                    sizes: sortSizeList(
+                      e.target.value
+                        .split(',')
+                        .map((x) => x.trim())
+                        .filter(Boolean),
+                    ),
+                  })
+                }
+                className={inputClass}
+                placeholder={t.sizeSystem === 'ropa' ? CLOTHING_SIZES.join(', ') : '35, 36, 37, 38'}
+              />
+            </Field>
+          </div>
+          <div className="mt-3">
+            <ImageUploadField label="Foto de la tarjeta en la portada" value={t.image} folder="home" onChange={(url) => edit(i, { image: url })} />
+          </div>
+          {t.value && (
+            <p className="mt-2 text-[11px] text-muted">
+              Enlace: <span className="font-mono">/catalogo?tipo={t.value}</span>
+            </p>
+          )}
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() => onChange([...types, { value: '', label: '', icon: '🛍️', sizeSystem: 'ropa', sizes: ['S', 'M', 'L', 'XL'], image: '', sub: '' }])}
+        className="w-full rounded-2xl border-2 border-dashed border-border py-3 text-sm font-bold text-primary hover:border-primary"
+      >
+        + Agregar tipo de producto (gorras, jeans, bolsos…)
       </button>
     </div>
   );

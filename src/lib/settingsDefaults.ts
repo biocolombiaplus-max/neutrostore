@@ -6,6 +6,28 @@ import type { SiteSettings } from './types';
 
 export const DEFAULT_SETTINGS: SiteSettings = {
   storeName: process.env.NEXT_PUBLIC_STORE_NAME || 'Neutro Store',
+  // Tipos de producto de la tienda multimarca. Desde el panel se agregan más
+  // (gorras, bolsos, jeans...) con sus propias tallas.
+  productTypes: [
+    {
+      value: 'sandalias',
+      label: 'Sandalias',
+      icon: '👡',
+      sizeSystem: 'calzado',
+      sizes: ['35', '36', '37', '38', '39', '40'],
+      image: '/sandalias/guess-roja-2.jpg',
+      sub: 'Plataformas, slides y tachas doradas',
+    },
+    {
+      value: 'camisetas',
+      label: 'Camisetas',
+      icon: '👕',
+      sizeSystem: 'ropa',
+      sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+      image: '/camisetas/camiseta-celeste.jpg',
+      sub: 'Algodón premium de las mejores marcas',
+    },
+  ],
   // El logo de Neutro Store viene incluido en /public — desde el panel
   // (Configuración → General) se puede reemplazar por otro.
   logoUrl: '/logo.png',
@@ -27,6 +49,8 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     { label: 'Planas / Slides', value: 'planas' },
     { label: 'Con tachas y apliques', value: 'tachas' },
     { label: 'Tacón y cuña', value: 'tacon' },
+    { label: 'Camisetas estampadas', value: 'estampadas' },
+    { label: 'Camisetas básicas', value: 'basicas' },
   ],
   featuredBrand: {
     enabled: true,
@@ -39,7 +63,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     bullets: ['Logo metálico dorado', 'Plataforma liviana', 'Plantilla acolchada', 'Diseño premium'],
     buttonText: 'Comprar Guess',
   },
-  brands: ['Guess', 'Neutro Store', 'Steve Madden', 'Michael Kors', 'Calvin Klein', 'Tommy Hilfiger', 'Aldo', 'Bata'],
+  brands: ['Guess', 'Monastery', 'Neutro Store', 'Tommy Hilfiger', 'Calvin Klein', 'Lacoste', 'Steve Madden', 'Michael Kors'],
   colors: {
     primary: '#B8923A',
     primaryHover: '#96742A',
@@ -55,7 +79,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     bodyFont: 'Montserrat',
   },
   announcementMessages: [
-    '👡 Nueva colección de sandalias para mujer — ya disponible',
+    '👡 Nueva colección de sandalias y 👕 camisetas premium — ya disponible',
     '🚚 Envíos a toda Colombia — llegamos a tu puerta',
     '💵 Contra entrega: hoy solo $15.000 para garantizar tu envío y el resto al recibir',
     '🏦 Paga por transferencia, Nequi o depósito en Bancolombia',
@@ -64,18 +88,18 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     '⚡ Pilas: las más vendidas se agotan rapidito',
   ],
   hero: {
-    eyebrow: 'Colección verano 2026 · Mujer',
-    heading: 'Sandalias que enamoran a cada paso',
+    eyebrow: 'Tienda multimarca · Colección 2026',
+    heading: 'Tu estilo, las mejores marcas',
     subtext:
-      'Plataformas, slides y diseños con tachas doradas para lucir increíble todo el día. Envío a toda Colombia y pagas por transferencia, Nequi o contra entrega.',
+      'Sandalias que enamoran y camisetas premium de Guess, Monastery y más marcas originales. Envío a toda Colombia y pagas por transferencia, Nequi o contra entrega.',
     images: ['/sandalias/portada-roja.jpg', '/sandalias/portada-negra.jpg'],
     badge1: '🚚 Envío a toda Colombia',
     badge2: '💵 Contra entrega',
     badge3: '🛡️ Compra segura',
-    button1Text: 'Ver colección',
-    button1Url: '/catalogo?genero=mujer',
-    button2Text: 'Ver ofertas',
-    button2Url: '/catalogo?ofertas=1',
+    button1Text: 'Ver sandalias',
+    button1Url: '/catalogo?tipo=sandalias',
+    button2Text: 'Ver camisetas',
+    button2Url: '/catalogo?tipo=camisetas',
     titleSize: 'lg',
     subtextSize: 'md',
   },
@@ -131,13 +155,13 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   chatProofs: {
     enabled: true,
     heading: 'Lo que nos escriben por WhatsApp',
-    subheading: 'Mensajes reales de clientas que ya recibieron sus sandalias',
+    subheading: 'Mensajes reales de clientes que ya recibieron su pedido',
     photos: [],
   },
   categoryTiles: {
     enabled: true,
     eyebrow: 'Colecciones para ella',
-    heading: '¿Qué estilo eres tú?',
+    heading: 'Sandalias: ¿qué estilo eres tú?',
     tiles: [
       {
         label: 'Plataformas',
@@ -186,7 +210,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     {
       icon: '💵',
       title: 'Pagas al recibir',
-      text: 'Con contra entrega hoy pagas solo $15.000 para garantizar tu envío y el resto cuando tienes tus sandalias en la mano.',
+      text: 'Con contra entrega hoy pagas solo $15.000 para garantizar tu envío y el resto cuando tienes tu pedido en la mano.',
     },
     {
       icon: '📏',
@@ -199,8 +223,8 @@ export const DEFAULT_SETTINGS: SiteSettings = {
       text: 'Pagas, nos envías el comprobante y despachamos el mismo día. Llega en 24 a 72 horas a todo el país.',
     },
   ],
-  testimonialsHeading: 'Lo que dicen nuestras clientas',
-  testimonialsSubtext: 'Clientas de toda Colombia que ya estrenaron con Neutro',
+  testimonialsHeading: 'Lo que dicen nuestros clientes',
+  testimonialsSubtext: 'Clientes de toda Colombia que ya estrenaron con Neutro',
   testimonials: [
     {
       name: 'Valentina G.',
@@ -221,16 +245,16 @@ export const DEFAULT_SETTINGS: SiteSettings = {
         'Tenía miedo de comprar en línea, pero con el pago al recibir me dio confianza. Las de tachas doradas están divinas, tal cual las fotos.',
     },
     {
-      name: 'María José P.',
+      name: 'Sebastián R.',
       city: 'Barranquilla',
-      review: 'Rápidos y serios. Me mandaron la guía de Servientrega de una y llegó a la casa. 10 de 10.',
+      review: 'Pedí dos camisetas Monastery, la tela es otra cosa y la talla M me quedó perfecta. Me mandaron la guía de Servientrega de una. 10 de 10.',
     },
   ],
   faqs: [
     {
       question: '¿Cómo funciona el pago contra entrega?',
       answer:
-        'Hoy pagas solo $15.000 del envío por transferencia, Nequi o depósito en Bancolombia para garantizar tu pedido. Tus sandalias las pagas en efectivo cuando Servientrega te los entrega en la dirección que nos diste. Así los dos quedamos tranquilos.',
+        'Hoy pagas solo $15.000 del envío por transferencia, Nequi o depósito en Bancolombia para garantizar tu pedido. Tu pedido lo pagas en efectivo cuando Servientrega te los entrega en la dirección que nos diste. Así los dos quedamos tranquilos.',
     },
     {
       question: '¿Cómo pago por transferencia o depósito?',
@@ -250,24 +274,24 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     {
       question: '¿Y si no me queda la talla?',
       answer:
-        'Escríbenos por WhatsApp máximo 48 horas después de recibir tu pedido. La sandalia debe estar sin uso, con su caja y etiquetas. Nos envías fotos, coordinamos el retiro y te despachamos la nueva talla. Pasadas las 48 horas no podemos procesar el cambio.',
+        'Escríbenos por WhatsApp máximo 48 horas después de recibir tu pedido. El producto debe estar sin uso, con su caja y etiquetas. Nos envías fotos, coordinamos el retiro y te despachamos la nueva talla. Pasadas las 48 horas no podemos procesar el cambio.',
     },
     {
       question: '¿Cómo sé cuál es mi talla?',
       answer:
-        'En cada producto tienes el botón "¿Cuál es mi talla?": mides tu pie en centímetros y te decimos la talla exacta. También puedes tomarle foto a la etiqueta de tus zapatos o sandalias y te la calculamos al instante.',
+        'En las sandalias tienes el botón "¿Cuál es mi talla?": mides tu pie en centímetros y te decimos la talla exacta. En camisetas te mostramos las medidas de cada talla (S a XXL) y, si tienes dudas, te asesoramos por WhatsApp.',
     },
   ],
   cta: {
-    eyebrow: '¿Qué esperas, reina?',
+    eyebrow: '¿Qué esperas?',
     heading: 'Estrena hoy. Paga al recibir.',
-    text: 'Elige tus sandalias, confirma por WhatsApp y te llegan a la puerta de tu casa en cualquier rincón de Colombia.',
-    buttonText: 'Ver sandalias',
-    buttonUrl: '/catalogo?genero=mujer',
+    text: 'Elige tus sandalias y camisetas, confirma por WhatsApp y te llegan a la puerta de tu casa en cualquier rincón de Colombia.',
+    buttonText: 'Ir al catálogo',
+    buttonUrl: '/catalogo',
   },
   footer: {
     brandText:
-      'Sandalias para mujer en Colombia: plataformas, slides y diseños con tachas, de Guess y más marcas, con envío a todo el país.',
+      'Tienda multimarca en Colombia: sandalias para mujer y camisetas premium de Guess, Monastery y más marcas, con envío a todo el país.',
     contactText: '¿Dudas con tu talla o tu pedido? Escríbenos, te respondemos de una.',
     email: '',
     address: 'Colombia',
@@ -342,6 +366,7 @@ export function mergeWithDefaults(data: Partial<SiteSettings> | undefined): Site
       ...data.featuredBrand,
       bullets: data.featuredBrand?.bullets?.length ? data.featuredBrand.bullets : DEFAULT_SETTINGS.featuredBrand.bullets,
     },
+    productTypes: data.productTypes?.some((t) => t.value && t.label) ? data.productTypes.filter((t) => t.value && t.label) : DEFAULT_SETTINGS.productTypes,
     announcementMessages: data.announcementMessages?.length ? data.announcementMessages : DEFAULT_SETTINGS.announcementMessages,
     categoryTiles: {
       ...DEFAULT_SETTINGS.categoryTiles,

@@ -19,7 +19,7 @@ import { ChevronIcon, CloseIcon, SearchIcon, WhatsAppIcon } from './icons';
 // desenfoque de fondo) un elemento "fixed" queda atrapado y no se ve.
 export default function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
   const router = useRouter();
-  const { brands, collectionsMenu, featuredBrand, payments, shipping, whatsappNumber, whatsappCountryCode, storeName, logoUrl, categoryTiles } =
+  const { brands, collectionsMenu, featuredBrand, payments, shipping, whatsappNumber, whatsappCountryCode, storeName, logoUrl, categoryTiles, productTypes } =
     useSiteSettings();
   // Las mismas tarjetas (foto, nombre y link) de "Compra por categoría" de la portada.
   const categories = categoryTiles.tiles.filter((t) => t.label.trim());
@@ -105,9 +105,30 @@ export default function MobileMenu({ open, onClose }: { open: boolean; onClose: 
           )}
 
           {/* Categorías con foto: las mismas de la portada */}
+          {productTypes.length > 1 && (
+            <>
+              <p className="mt-7 text-[11px] font-extrabold uppercase tracking-[0.22em] text-muted">Comprar por tipo</p>
+              <div className="mt-3 grid grid-cols-2 gap-2.5">
+                {productTypes.map((t) => (
+                  <Link
+                    key={t.value}
+                    href={`/catalogo?tipo=${encodeURIComponent(t.value)}`}
+                    onClick={onClose}
+                    className="group relative h-28 overflow-hidden rounded-2xl bg-ink ring-1 ring-primary/30"
+                  >
+                    {t.image && <SafeImage src={t.image} alt={t.label} fill sizes="180px" className="object-cover opacity-75" />}
+                    <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+                    <span className="absolute bottom-2.5 left-3 right-3 truncate text-lg font-black uppercase text-white">
+                      {t.icon} {t.label}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </>
+          )}
           {categories.length > 0 && (
             <>
-              <p className="mt-7 text-[11px] font-extrabold uppercase tracking-[0.22em] text-muted">Comprar por categoría</p>
+              <p className="mt-7 text-[11px] font-extrabold uppercase tracking-[0.22em] text-muted">Estilos de sandalias</p>
               <div className="mt-3 grid grid-cols-2 gap-2.5">
                 {categories.map((c) => (
                   <Link key={c.label + c.href} href={c.href || '/catalogo'} onClick={onClose} className="group relative h-24 overflow-hidden rounded-2xl bg-ink">
@@ -162,7 +183,7 @@ export default function MobileMenu({ open, onClose }: { open: boolean; onClose: 
                 {collectionsMenu.map((c) => (
                   <Link
                     key={c.value}
-                    href={`/catalogo?genero=mujer&estilo=${encodeURIComponent(c.value)}`}
+                    href={`/catalogo?estilo=${encodeURIComponent(c.value)}`}
                     onClick={onClose}
                     className="rounded-full bg-cream-alt px-4 py-2 text-sm font-bold text-ink"
                   >

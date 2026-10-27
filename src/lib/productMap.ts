@@ -10,6 +10,7 @@ export function mapProduct(id: string, data: any, toMillis: (value: unknown) => 
     brand: data.brand ?? '',
     line: data.line ?? '',
     gender: ['hombre', 'mujer', 'unisex'].includes(data.gender) ? data.gender : 'unisex',
+    category: typeof data.category === 'string' ? data.category : '',
     description: data.description ?? '',
     price: data.price ?? 0,
     compareAtPrice: data.compareAtPrice ?? null,

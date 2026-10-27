@@ -17,6 +17,8 @@ import ProductGallery from '@/components/product/ProductGallery';
 import BuyBox from '@/components/product/BuyBox';
 import TrustStrip from '@/components/product/TrustStrip';
 import SizeGuide from '@/components/sizes/SizeGuide';
+import ClothingSizeGuide from '@/components/sizes/ClothingSizeGuide';
+import { isFootwear, productTypeOf } from '@/lib/productTypes';
 import Accordion, { AccordionItem } from '@/components/product/Accordion';
 import ProductReviews from '@/components/product/ProductReviews';
 import RealDeliveries from '@/components/RealDeliveries';
@@ -28,7 +30,7 @@ import { isStarBrand } from '@/lib/brand';
 
 export default function ProductView({ initialProduct, related }: { initialProduct?: Product | null; related?: Product[] }) {
   const params = useParams<{ slug: string }>();
-  const { payments, shipping, featuredBrand, whatsappNumber, whatsappCountryCode } = useSiteSettings();
+  const { payments, shipping, featuredBrand, whatsappNumber, whatsappCountryCode, productTypes } = useSiteSettings();
   // La ficha llega desde el servidor ya con el zapato: se ve al instante.
   const [product, setProduct] = useState<Product | null | undefined>(initialProduct ?? undefined);
   const [colorName, setColorName] = useState<string | undefined>(initialProduct?.colors[0]?.name);
@@ -190,7 +192,11 @@ export default function ProductView({ initialProduct, related }: { initialProduc
                   </AccordionItem>
                 )}
                 <AccordionItem title="📏 Guía de tallas">
-                  <SizeGuide fit={product.fit} gender={product.gender} availableSizes={product.sizes} />
+                  {isFootwear(productTypeOf(product, productTypes)) ? (
+                    <SizeGuide fit={product.fit} gender={product.gender} availableSizes={product.sizes} />
+                  ) : (
+                    <ClothingSizeGuide availableSizes={product.sizes} />
+                  )}
                 </AccordionItem>
                 <AccordionItem title="🚚 Envíos y formas de pago">
                   <ul className="space-y-2">

@@ -7,6 +7,7 @@ import { detectShoeColors } from '@/lib/colorDetect';
 import { resizeForUpload } from '@/lib/imageCrop';
 import { createProduct, deleteProduct, updateProduct } from '@/lib/products';
 import { useSiteSettings } from '@/lib/settings-context';
+import { isFootwear, productTypeOf } from '@/lib/productTypes';
 import { deleteProductImage, uploadProductImage } from '@/lib/storage';
 import type { ColorPattern, Gender, ProductColor, ProductInput } from '@/lib/types';
 import QuickDraftCard, { COLLECTIONS, SIZE_PRESETS, type QuickDraft as Draft, type QuickPhoto as Photo } from '@/components/admin/QuickDraftCard';
@@ -67,12 +68,18 @@ async function toBase64Jpeg(file: File, max = 1200): Promise<string> {
 
 export default function CargaRapidaPage() {
   const user = useAdminUser();
-  const { brands, payments } = useSiteSettings();
+  const { brands, payments, productTypes } = useSiteSettings();
   const inputRef = useRef<HTMLInputElement>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [drafts, setDrafts] = useState<Draft[]>([]);
-  const [defaults, setDefaults] = useState({ brand: '', gender: 'hombre' as Gender, price: String(payments.defaultPrice || 199900) });
+  const [defaults, setDefaults] = useState({
+    brand: '',
+    gender: 'mujer' as Gender,
+    category: productTypes[0]?.value ?? 'sandalias',
+    price: String(payments.defaultPrice || 189900),
+  });
+  const defaultType = productTypeOf({ category: defaults.category }, productTypes);
   const [publishing, setPublishing] = useState(false);
   const [aiAvailable, setAiAvailable] = useState(true);
 
@@ -110,11 +117,12 @@ export default function CargaRapidaPage() {
       brand: defaults.brand,
       line: '',
       gender: defaults.gender,
-      collection: 'urbanos',
+      category: defaultType.value,
+      collection: '',
       price: defaults.price,
       compareAtPrice: '',
       stock: '20',
-      sizes: SIZE_PRESETS[defaults.gender],
+      sizes: isFootwear(defaultType) ? SIZE_PRESETS[defaults.gender] : defaultType.sizes,
       description: '',
       isNew: true,
       featured: false,
@@ -189,7 +197,7 @@ export default function CargaRapidaPage() {
         title: suggestion.title,
         brand: knownBrand,
         gender: suggestion.gender,
-        sizes: SIZE_PRESETS[suggestion.gender],
+        ...(isFootwear(productTypeOf(draft, productTypes)) ? { sizes: SIZE_PRESETS[suggestion.gender] } : {}),
         collection: COLLECTIONS.includes(suggestion.collection) ? suggestion.collection : draft.collection,
         description: suggestion.description,
         ai: 'done',
@@ -242,6 +250,7 @@ export default function CargaRapidaPage() {
         brand: draft.brand.trim(),
         line: draft.line.trim() || suggestLine(draft.title, draft.brand),
         gender: draft.gender,
+        category: productTypeOf(draft, productTypes).value,
         fit: 'normal',
         isNew: draft.isNew,
         description: draft.description.trim() || defaultDescription(draft, colors.map((c) => c.name)),
@@ -302,6 +311,7 @@ export default function CargaRapidaPage() {
         brand: draft.brand.trim(),
         line: draft.line.trim() || suggestLine(draft.title, draft.brand),
         gender: draft.gender,
+        category: productTypeOf(draft, productTypes).value,
         collection: draft.collection,
         price: parseCop(draft.price) || payments.defaultPrice,
         compareAtPrice: parseCop(draft.compareAtPrice) > 0 ? parseCop(draft.compareAtPrice) : null,
@@ -455,7 +465,17 @@ export default function CargaRapidaPage() {
       {/* Valores por defecto */}
       <section className="mt-5 rounded-card bg-white p-5 shadow-soft sm:p-6">
         <h2 className="font-heading text-lg font-bold text-ink">Valores para los nuevos productos</h2>
-        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+        <div className="mt-3 grid gap-3 sm:grid-cols-4">
+          <label className="text-xs font-bold text-ink">
+            Tipo de producto
+            <select value={defaults.category} onChange={(e) => setDefaults({ ...defaults, category: e.target.value })} className="input mt-1 bg-white">
+              {productTypes.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.icon} {t.label}
+                </option>
+              ))}
+            </select>
+          </label>
           <label className="text-xs font-bold text-ink">
             Marca
             <input list="qb-brands" value={defaults.brand} onChange={(e) => setDefaults({ ...defaults, brand: e.target.value })} placeholder="Ej: Nike" className="input mt-1" />
@@ -463,8 +483,8 @@ export default function CargaRapidaPage() {
           <label className="text-xs font-bold text-ink">
             Género
             <select value={defaults.gender} onChange={(e) => setDefaults({ ...defaults, gender: e.target.value as Gender })} className="input mt-1 bg-white">
-              <option value="hombre">Hombre</option>
               <option value="mujer">Mujer</option>
+              <option value="hombre">Hombre</option>
               <option value="unisex">Unisex</option>
             </select>
           </label>

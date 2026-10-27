@@ -19,6 +19,7 @@ import { CartIcon, RulerIcon, WhatsAppIcon } from '../icons';
 import { discountPercentOf } from '../ProductCard';
 import SizeGuideModal from '../sizes/SizeGuideModal';
 import LabelScanner from '../sizes/LabelScanner';
+import { isFootwear, productTypeOf } from '@/lib/productTypes';
 import DeliveryEstimate from './DeliveryEstimate';
 import { sendOrderToWhatsApp } from '@/lib/whatsappOrder';
 import { WA_TAGS } from '@/lib/waTags';
@@ -50,6 +51,9 @@ export default function BuyBox({
   const discountPercent = discountPercentOf(product);
   const soldOut = product.stock <= 0;
   const needsSize = product.sizes.length > 0;
+  // Calzado: talla CO con equivalencia US, calculadora y lector de etiquetas.
+  // Ropa y demás tipos: tallas tal cual (S, M, L...) con su propia tabla.
+  const footwear = isFootwear(productTypeOf(product, settings.productTypes));
 
   function handleColorChange(colorName: string) {
     setColor(colorName);
@@ -249,13 +253,13 @@ export default function BuyBox({
               <StepNumber n={1} done={!!size} />
               {size ? (
                 <>
-                  Talla elegida: <span className="text-primary">CO {size}</span>
+                  Talla elegida: <span className="text-primary">{footwear ? `CO ${size}` : size}</span>
                   {usSizeFor(size, product.gender) && <span className="text-muted"> · US {usSizeFor(size, product.gender)}</span>}
                 </>
               ) : sizeError ? (
                 '👇 Elige tu talla para continuar'
               ) : (
-                'Toca tu talla (CO)'
+                footwear ? 'Toca tu talla (CO)' : 'Toca tu talla'
               )}
             </p>
             <button
@@ -294,6 +298,8 @@ export default function BuyBox({
               </button>
             ))}
           </div>
+          {footwear ? (
+          <>
           <p className="mt-2 text-[11px] text-muted">
             Número grande: talla Colombia{product.gender === 'hombre' ? ' (igual a la europea, EUR)' : ''} · debajo: talla US
             {product.gender === 'mujer' ? ' mujer' : product.gender === 'hombre' ? ' hombre' : ''}.{' '}
@@ -313,6 +319,15 @@ export default function BuyBox({
               }}
             />
           </div>
+          </>
+          ) : (
+            <p className="mt-2 text-[11px] text-muted">
+              ¿Dudas con la talla?{' '}
+              <button type="button" onClick={() => setGuideOpen(true)} className="font-bold text-ink underline">
+                Ver tabla de medidas
+              </button>
+            </p>
+          )}
         </div>
       )}
 
@@ -421,6 +436,7 @@ export default function BuyBox({
         onClose={() => setGuideOpen(false)}
         fit={product.fit}
         gender={product.gender}
+        clothing={!footwear}
         availableSizes={product.sizes}
         productTitle={product.title}
         onPickSize={(s) => {

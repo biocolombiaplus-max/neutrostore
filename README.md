@@ -18,6 +18,15 @@ Colombia:
 
 ## Qué incluye
 
+- **Tienda multimarca con tipos de producto**: por ahora **Sandalias** y
+  **Camisetas**. En `/admin/configuracion` → *Tipos de producto* se crean
+  más (gorras, jeans, bolsos…) con su ícono, foto, y tipo de tallas
+  (calzado 34–45 con guía por centímetros, ropa XS–XXL con tabla de medidas,
+  o talla única). Cada tipo aparece en el menú, en la portada (tarjeta +
+  vitrina con sus más vendidos) y como pestaña/filtro del catálogo
+  (`/catalogo?tipo=camisetas`). Al crear un producto se elige su tipo y las
+  tallas cambian solas.
+
 - **Inicio tipo tienda deportiva grande**: portada a pantalla completa, barra
   de confianza, cinta de marcas, marca destacada, categorías, productos con
   pestañas (Más vendidos / Lo nuevo / Ofertas), formas de pago, cómo comprar,

@@ -6,6 +6,8 @@ import { useState } from 'react';
 import ColorEditor, { ColorChipButton, toneSummary, type ColorValue } from '@/components/admin/ColorEditor';
 import type { Gender, ProductColor } from '@/lib/types';
 import { classNames, formatPrice, parseCop } from '@/lib/utils';
+import { useSiteSettings } from '@/lib/settings-context';
+import { CLOTHING_SIZES, isFootwear, productTypeOf, sortSizeList } from '@/lib/productTypes';
 
 export interface QuickPhoto {
   id: string;
@@ -19,6 +21,8 @@ export interface QuickDraft {
   photoIds: string[];
   title: string;
   brand: string;
+  // Tipo de producto (sandalias, camisetas...).
+  category?: string;
   // Colección dentro de la marca (vacía = se deduce del nombre).
   line: string;
   gender: Gender;
@@ -106,6 +110,10 @@ export default function QuickDraftCard({
   onDelete: () => void;
   onDefaultDescription: () => string;
 }) {
+  const { productTypes } = useSiteSettings();
+  const draftType = productTypeOf(d, productTypes);
+  const draftFootwear = isFootwear(draftType);
+  const sizeOptions = draftFootwear ? ALL_SIZES : draftType.sizeSystem === 'ropa' ? CLOTHING_SIZES : draftType.sizes;
   const published = d.status === 'done';
   const editable = !published || d.editing;
   const saving = d.status === 'saving' || d.savingEdit;
@@ -290,15 +298,29 @@ export default function QuickDraftCard({
           </div>
 
           <div>
-            <Label>Tallas disponibles (CO)</Label>
+            <Label>Tipo de producto</Label>
+            <div className="mb-3 flex flex-wrap gap-1.5">
+              {productTypes.map((t) => (
+                <button
+                  key={t.value}
+                  type="button"
+                  disabled={saving}
+                  onClick={() => onChange({ category: t.value, sizes: t.sizes })}
+                  className={classNames('rounded-full px-3 py-1.5 text-xs font-bold', draftType.value === t.value ? 'bg-ink text-white' : 'bg-cream-alt text-muted')}
+                >
+                  {t.icon} {t.label}
+                </button>
+              ))}
+            </div>
+            <Label>{draftFootwear ? 'Tallas disponibles (CO)' : 'Tallas disponibles'}</Label>
             <div className="flex flex-wrap gap-1.5">
-              {ALL_SIZES.map((s) => (
+              {sizeOptions.map((s) => (
                 <button
                   key={s}
                   type="button"
                   disabled={saving}
                   onClick={() =>
-                    onChange({ sizes: d.sizes.includes(s) ? d.sizes.filter((x) => x !== s) : [...d.sizes, s].sort((a, b) => Number(a) - Number(b)) })
+                    onChange({ sizes: d.sizes.includes(s) ? d.sizes.filter((x) => x !== s) : sortSizeList([...d.sizes, s]) })
                   }
                   className={classNames('h-9 w-10 rounded-lg text-xs font-bold transition-colors', d.sizes.includes(s) ? 'bg-ink text-white' : 'bg-cream-alt text-muted')}
                 >
