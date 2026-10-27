@@ -37,7 +37,7 @@ export default async function HomePage() {
       url: siteUrl,
       image: `${siteUrl}/og-image.jpg`,
       logo: settings.logoUrl ? (settings.logoUrl.startsWith('http') ? settings.logoUrl : `${siteUrl}${settings.logoUrl}`) : `${siteUrl}/icon-512`,
-      description: 'Tienda de zapatos multimarca en Colombia: On Cloud, Nike, Adidas, Jordan, New Balance, Hoka y más. Envío a todo el país y pago contra entrega.',
+      description: 'Tienda de sandalias para mujer en Colombia: plataformas, slides y sandalias con tachas de Guess y más marcas. Envío a todo el país y pago contra entrega.',
       areaServed: { '@type': 'Country', name: 'Colombia' },
       currenciesAccepted: 'COP',
       paymentAccepted: 'Transferencia bancaria, depósito, pago contra entrega',

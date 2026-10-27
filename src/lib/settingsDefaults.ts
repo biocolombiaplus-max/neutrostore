@@ -23,22 +23,23 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   statsResetAt: 0,
   commissionPaid: [],
   collectionsMenu: [
-    { label: 'Deportivos', value: 'deportivos' },
-    { label: 'Urbanos / Casual', value: 'urbanos' },
-    { label: 'Running', value: 'running' },
+    { label: 'Plataformas', value: 'plataformas' },
+    { label: 'Planas / Slides', value: 'planas' },
+    { label: 'Con tachas y apliques', value: 'tachas' },
+    { label: 'Tacón y cuña', value: 'tacon' },
   ],
   featuredBrand: {
     enabled: true,
-    name: 'On',
-    eyebrow: 'La marca #1 de Neutro Store',
-    heading: 'Corre sobre nubes.',
-    text: 'Ingeniería suiza con tecnología CloudTec® que amortigua cada paso y te impulsa hacia adelante. La marca que más piden nuestros clientes en toda Colombia — ahora con envío a tu puerta y pago contra entrega.',
-    image: '/products/on-cloudtec-phase-cutout.png',
+    name: 'Guess',
+    eyebrow: 'La colección #1 de Neutro Store',
+    heading: 'Pisa con estilo.',
+    text: 'Sandalias de plataforma con el logo GUESS en metal dorado, plantilla acolchada y un diseño que estiliza cada paso. Las más pedidas por nuestras clientas en toda Colombia — con envío a tu puerta y pago contra entrega.',
+    image: '/sandalias/guess-roja-3.jpg',
     badge: 'Más vendida',
-    bullets: ['Ingeniería suiza', 'Amortiguación CloudTec®', 'Ultraligeros y transpirables', 'Diseño premium'],
-    buttonText: 'Comprar On',
+    bullets: ['Logo metálico dorado', 'Plataforma liviana', 'Plantilla acolchada', 'Diseño premium'],
+    buttonText: 'Comprar Guess',
   },
-  brands: ['On', 'Nike', 'Adidas', 'Jordan', 'New Balance', 'Asics', 'Onitsuka Tiger', 'Hoka', 'Puma', 'Reebok', 'Vans', 'Under Armour'],
+  brands: ['Guess', 'Neutro Store', 'Steve Madden', 'Michael Kors', 'Calvin Klein', 'Tommy Hilfiger', 'Aldo', 'Bata'],
   colors: {
     primary: '#B8923A',
     primaryHover: '#96742A',
@@ -54,29 +55,25 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     bodyFont: 'Montserrat',
   },
   announcementMessages: [
-    '☁️ Llegó On — la marca más vendida de Neutro Store',
+    '👡 Nueva colección de sandalias para mujer — ya disponible',
     '🚚 Envíos a toda Colombia — llegamos a tu puerta',
     '💵 Contra entrega: hoy solo $15.000 para garantizar tu envío y el resto al recibir',
-    '🏦 Paga por transferencia o depósito en Bancolombia',
+    '🏦 Paga por transferencia, Nequi o depósito en Bancolombia',
     '🛡️ Compra segura · Garantía Neutro',
     '🔄 ¿No te quedó? Solicita tu cambio de talla hasta 48 h después de recibir',
-    '⚡ Pilas: los más vendidos se agotan rapidito',
+    '⚡ Pilas: las más vendidas se agotan rapidito',
   ],
   hero: {
-    eyebrow: 'Nueva colección 2026',
-    heading: 'Los zapatos que buscas, al precio que te gusta',
+    eyebrow: 'Colección verano 2026 · Mujer',
+    heading: 'Sandalias que enamoran a cada paso',
     subtext:
-      'On, Nike, Adidas, Jordan, New Balance, Hoka y más marcas top, con envío a toda Colombia. Pagas por transferencia, Nequi o contra entrega — súper fácil y seguro.',
-    images: [
-      'https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&w=1400&q=80',
-      'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?auto=format&fit=crop&w=1400&q=80',
-      'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=1400&q=80',
-    ],
+      'Plataformas, slides y diseños con tachas doradas para lucir increíble todo el día. Envío a toda Colombia y pagas por transferencia, Nequi o contra entrega.',
+    images: ['/sandalias/portada-roja.jpg', '/sandalias/portada-negra.jpg'],
     badge1: '🚚 Envío a toda Colombia',
     badge2: '💵 Contra entrega',
     badge3: '🛡️ Compra segura',
-    button1Text: 'Ver catálogo',
-    button1Url: '/catalogo',
+    button1Text: 'Ver colección',
+    button1Url: '/catalogo?genero=mujer',
     button2Text: 'Ver ofertas',
     button2Url: '/catalogo?ofertas=1',
     titleSize: 'lg',
@@ -109,8 +106,8 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   payments: {
     codAdvance: 15000,
     codEnabled: true,
-    codUnitPrice: 229900,
-    defaultPrice: 199900,
+    codUnitPrice: 209900,
+    defaultPrice: 189900,
     // Cuentas de ejemplo: reemplázalas desde el panel (Configuración → Pagos).
     bankAccounts: [
       {
@@ -134,40 +131,40 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   chatProofs: {
     enabled: true,
     heading: 'Lo que nos escriben por WhatsApp',
-    subheading: 'Mensajes reales de clientes que ya recibieron sus zapatos',
+    subheading: 'Mensajes reales de clientas que ya recibieron sus sandalias',
     photos: [],
   },
   categoryTiles: {
     enabled: true,
-    eyebrow: 'Compra por categoría',
-    heading: '¿Qué andas buscando?',
+    eyebrow: 'Colecciones para ella',
+    heading: '¿Qué estilo eres tú?',
     tiles: [
       {
-        label: 'Hombre',
-        sub: 'Urbanos, running y deportivos',
-        href: '/catalogo?genero=hombre',
-        image: 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&w=900&q=75',
+        label: 'Plataformas',
+        sub: 'Altura y comodidad todo el día',
+        href: '/catalogo?genero=mujer&estilo=plataformas',
+        image: '/sandalias/guess-roja-2.jpg',
         buttonText: 'Comprar',
       },
       {
-        label: 'Mujer',
-        sub: 'Estilo y comodidad todo el día',
-        href: '/catalogo?genero=mujer',
-        image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=900&q=75',
+        label: 'Con tachas',
+        sub: 'Brillo dorado que se nota',
+        href: '/catalogo?genero=mujer&estilo=tachas',
+        image: '/sandalias/tachas-negra-2.jpg',
         buttonText: 'Comprar',
       },
       {
-        label: 'Running',
-        sub: 'Para correr y entrenar',
-        href: '/catalogo?estilo=running',
-        image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=75',
+        label: 'Planas / Slides',
+        sub: 'Fáciles, frescas y cómodas',
+        href: '/catalogo?genero=mujer&estilo=planas',
+        image: '/sandalias/tachas-negra-1.jpg',
         buttonText: 'Comprar',
       },
       {
         label: 'Ofertas',
         sub: 'Precios que no se repiten',
         href: '/catalogo?ofertas=1',
-        image: 'https://images.unsplash.com/photo-1556906781-9a412961c28c?auto=format&fit=crop&w=900&q=75',
+        image: '/sandalias/guess-roja-3.jpg',
         buttonText: 'Comprar',
       },
     ],
@@ -189,7 +186,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     {
       icon: '💵',
       title: 'Pagas al recibir',
-      text: 'Con contra entrega hoy pagas solo $15.000 para garantizar tu envío y el resto cuando tienes tus zapatos en la mano.',
+      text: 'Con contra entrega hoy pagas solo $15.000 para garantizar tu envío y el resto cuando tienes tus sandalias en la mano.',
     },
     {
       icon: '📏',
@@ -202,14 +199,14 @@ export const DEFAULT_SETTINGS: SiteSettings = {
       text: 'Pagas, nos envías el comprobante y despachamos el mismo día. Llega en 24 a 72 horas a todo el país.',
     },
   ],
-  testimonialsHeading: 'Lo que dicen nuestros clientes',
-  testimonialsSubtext: 'Clientes reales de toda Colombia que ya estrenaron con Neutro',
+  testimonialsHeading: 'Lo que dicen nuestras clientas',
+  testimonialsSubtext: 'Clientas de toda Colombia que ya estrenaron con Neutro',
   testimonials: [
     {
-      name: 'Andrés M.',
+      name: 'Valentina G.',
       city: 'Bogotá',
       review:
-        'Súper recomendados, parce. Pedí unas Air Force por contra entrega, adelanté los $15.000 y me llegaron en dos días, con su caja y todo. De una vuelvo a comprar.',
+        'Súper recomendadas. Pedí las Guess rojas por contra entrega, adelanté los $15.000 y me llegaron en dos días, con su caja y todo. De una vuelvo a comprar.',
     },
     {
       name: 'Gabriela V.',
@@ -218,10 +215,10 @@ export const DEFAULT_SETTINGS: SiteSettings = {
         'Muy bacana la atención por WhatsApp. Me ayudaron con la talla y me quedaron perfectas. Pagué por transferencia y al otro día ya las tenía.',
     },
     {
-      name: 'Daniel C.',
+      name: 'Daniela C.',
       city: 'Cali',
       review:
-        'Tenía miedo de comprar en línea, pero con el pago al recibir me dio confianza. Las Samba están bacanísimas, tal cual las fotos.',
+        'Tenía miedo de comprar en línea, pero con el pago al recibir me dio confianza. Las de tachas doradas están divinas, tal cual las fotos.',
     },
     {
       name: 'María José P.',
@@ -233,7 +230,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     {
       question: '¿Cómo funciona el pago contra entrega?',
       answer:
-        'Hoy pagas solo $15.000 del envío por transferencia, Nequi o depósito en Bancolombia para garantizar tu pedido. Tus zapatos los pagas en efectivo cuando Servientrega te los entrega en la dirección que nos diste. Así los dos quedamos tranquilos.',
+        'Hoy pagas solo $15.000 del envío por transferencia, Nequi o depósito en Bancolombia para garantizar tu pedido. Tus sandalias las pagas en efectivo cuando Servientrega te los entrega en la dirección que nos diste. Así los dos quedamos tranquilos.',
     },
     {
       question: '¿Cómo pago por transferencia o depósito?',
@@ -253,24 +250,24 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     {
       question: '¿Y si no me queda la talla?',
       answer:
-        'Escríbenos por WhatsApp máximo 48 horas después de recibir tu pedido. El zapato debe estar sin uso, con su caja y etiquetas. Nos envías fotos, coordinamos el retiro y te despachamos la nueva talla. Pasadas las 48 horas no podemos procesar el cambio.',
+        'Escríbenos por WhatsApp máximo 48 horas después de recibir tu pedido. La sandalia debe estar sin uso, con su caja y etiquetas. Nos envías fotos, coordinamos el retiro y te despachamos la nueva talla. Pasadas las 48 horas no podemos procesar el cambio.',
     },
     {
       question: '¿Cómo sé cuál es mi talla?',
       answer:
-        'En cada producto tienes el botón "¿Cuál es mi talla?": mides tu pie en centímetros y te decimos la talla exacta. También puedes tomarle foto a la etiqueta de tus zapatos y te la calculamos al instante.',
+        'En cada producto tienes el botón "¿Cuál es mi talla?": mides tu pie en centímetros y te decimos la talla exacta. También puedes tomarle foto a la etiqueta de tus zapatos o sandalias y te la calculamos al instante.',
     },
   ],
   cta: {
-    eyebrow: '¿Qué esperas, parce?',
+    eyebrow: '¿Qué esperas, reina?',
     heading: 'Estrena hoy. Paga al recibir.',
-    text: 'Elige tus zapatos, confirma por WhatsApp y te llegan a la puerta de tu casa en cualquier rincón de Colombia.',
-    buttonText: 'Ir al catálogo',
-    buttonUrl: '/catalogo',
+    text: 'Elige tus sandalias, confirma por WhatsApp y te llegan a la puerta de tu casa en cualquier rincón de Colombia.',
+    buttonText: 'Ver sandalias',
+    buttonUrl: '/catalogo?genero=mujer',
   },
   footer: {
     brandText:
-      'Tienda multimarca de zapatos en Colombia. On, Nike, Adidas, Jordan, New Balance, Asics, Hoka y más, con envío a todo el país.',
+      'Sandalias para mujer en Colombia: plataformas, slides y diseños con tachas, de Guess y más marcas, con envío a todo el país.',
     contactText: '¿Dudas con tu talla o tu pedido? Escríbenos, te respondemos de una.',
     email: '',
     address: 'Colombia',

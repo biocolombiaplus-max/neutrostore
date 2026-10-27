@@ -202,7 +202,7 @@ export default function ProductView({ initialProduct, related }: { initialProduc
                     {payments.codEnabled && (
                       <li>
                         • <strong className="text-ink">Contra entrega:</strong> confirmas por WhatsApp con un asesor, pagas solo{' '}
-                        {formatPrice(payments.codAdvance)} del envío para despachar y tus zapatos los pagas en efectivo al recibir.
+                        {formatPrice(payments.codAdvance)} del envío para despachar y tus sandalias las pagas en efectivo al recibir.
                       </li>
                     )}
                     <li>• Todos los pedidos se confirman por WhatsApp — te respondemos de una.</li>

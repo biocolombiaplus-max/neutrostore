@@ -6,8 +6,8 @@ import { slimProduct } from '@/lib/productMap';
 export function generateMetadata({ searchParams }: { searchParams: { marca?: string; genero?: string } }): Metadata {
   const brand = searchParams.marca;
   const gender = searchParams.genero === 'hombre' ? 'hombre' : searchParams.genero === 'mujer' ? 'mujer' : '';
-  const title = brand ? `Zapatos ${brand} en Colombia` : gender ? `Zapatos de ${gender} en Colombia` : 'Catálogo de zapatos en Colombia';
-  const description = `${brand ? `Todos los modelos ${brand}` : 'On Cloud, Nike, Adidas, Jordan, New Balance, Hoka y más'}${
+  const title = brand ? `Sandalias ${brand} en Colombia` : gender === 'hombre' ? 'Calzado de hombre en Colombia' : gender ? 'Sandalias para mujer en Colombia' : 'Catálogo de sandalias en Colombia';
+  const description = `${brand ? `Todos los modelos ${brand}` : 'Plataformas, slides y sandalias con tachas'}${
     gender ? ` para ${gender}` : ''
   }. Envío a toda Colombia con Servientrega y pago contra entrega.`;
   return {

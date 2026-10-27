@@ -220,7 +220,7 @@ function Envios() {
           items={[
             'Pagando por transferencia o depósito, el valor del envío se muestra en el checkout antes de confirmar tu pedido. Sin sorpresas.',
             payments.codEnabled
-              ? `Con pago contra entrega adelantas solo ${formatPrice(payments.codAdvance)} del envío y pagas tus zapatos al recibirlos.`
+              ? `Con pago contra entrega adelantas solo ${formatPrice(payments.codAdvance)} del envío y pagas tus sandalias al recibirlas.`
               : '',
             shipping.rates.length
               ? `Destinos con tarifa especial: ${shipping.rates.map((r) => r.province).join(', ')}.`
@@ -262,7 +262,7 @@ function MetodosPago() {
         </Block>
         {payments.codEnabled && (
           <Block title="💵 Pago contra entrega" className="ring-2 ring-primary/40">
-            <p>Ideal si prefieres pagar cuando tienes tus zapatos en la mano.</p>
+            <p>Ideal si prefieres pagar cuando tienes tus sandalias en la mano.</p>
             <div className="grid grid-cols-2 gap-2 text-center">
               <div className="rounded-2xl bg-ink p-3 text-white">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-primary-light">Hoy</p>
@@ -315,7 +315,7 @@ function Cambios() {
           Si tu pedido llega con un <strong className="text-ink">defecto de fábrica</strong> o recibes un producto distinto al que pediste, te lo
           cambiamos sin costo. Escríbenos con fotos dentro de las {hours} horas de recibido y lo solucionamos.
         </p>
-        <p>Por higiene y cuidado del producto, no aceptamos devoluciones de zapatos usados.</p>
+        <p>Por higiene y cuidado del producto, no aceptamos devoluciones de calzado usado.</p>
       </Block>
       <Block title="Para no fallar con la talla">
         <p>
@@ -401,10 +401,10 @@ function QuienesSomos() {
         <span className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[radial-gradient(circle,rgba(212,175,55,0.3),transparent_70%)]" />
         <p className="relative text-[10px] font-extrabold uppercase tracking-[0.25em] text-primary-light">Nuestra historia</p>
         <p className="relative mt-3 font-display text-2xl leading-snug sm:text-4xl">
-          Zapatos que te hacen <span className="text-gold-gradient">sentir top</span>, a un precio que sí puedes pagar.
+          Sandalias que te hacen <span className="text-gold-gradient">sentir divina</span>, a un precio que sí puedes pagar.
         </p>
         <p className="relative mt-4 max-w-2xl text-sm leading-relaxed text-white/70">
-          {storeName} nació en Colombia con una idea simple: que comprar zapatos deportivos en línea sea fácil, seguro y con atención de verdad.
+          {storeName} nació en Colombia con una idea simple: que comprar sandalias lindas en línea sea fácil, seguro y con atención de verdad.
           Por eso confirmamos cada pedido por WhatsApp, te asesoramos con la talla y te damos opciones de pago que te den tranquilidad.
         </p>
       </div>
@@ -448,7 +448,7 @@ function Autenticidad() {
       <Block title="Compra con la seguridad de ver antes de pagar">
         <List
           items={[
-            'Con pago contra entrega adelantas solo el envío y pagas tus zapatos cuando los tienes en la mano.',
+            'Con pago contra entrega adelantas solo el envío y pagas tus sandalias cuando las tienes en la mano.',
             'Si el producto no coincide con lo que pediste, lo cambiamos sin costo.',
             'Todas las marcas y nombres de modelos pertenecen a sus respectivos dueños y se usan solo como referencia del producto.',
           ]}

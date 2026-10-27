@@ -58,7 +58,7 @@ export default function FeaturedBrandSpotlight({ initialProducts }: { initialPro
               {fb.name}
             </span>
           </span>
-          {fb.image && <ShoeStage src={fb.image} alt={`${fb.name} — zapatos`} sizes="(max-width: 1024px) 100vw, 55vw" className="mx-auto aspect-[16/11] w-full max-w-2xl" />}
+          {fb.image && <ShoeStage src={fb.image} alt={`${fb.name} — sandalias`} sizes="(max-width: 1024px) 100vw, 55vw" className="mx-auto aspect-[16/11] w-full max-w-2xl" />}
           <StarSeal label={fb.badge} className="absolute right-0 top-0 w-24 text-[15px] sm:w-32 sm:text-[20px] lg:-right-2 lg:top-2" />
         </Link>
 

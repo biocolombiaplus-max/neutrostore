@@ -3,9 +3,9 @@ import '../styles/globals.css';
 
 const STORE_NAME = process.env.NEXT_PUBLIC_STORE_NAME || 'Neutro Store';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://neutrostore.vercel.app';
-const TITLE = `${STORE_NAME} | Tienda de zapatos en Colombia`;
+const TITLE = `${STORE_NAME} | Sandalias para mujer en Colombia`;
 const DESCRIPTION =
-  'On, Nike, Adidas, Jordan, New Balance, Asics, Hoka y más. Envío a toda Colombia y pago contra entrega: adelantas solo el envío y el resto al recibir.';
+  'Sandalias para mujer: plataformas, slides y diseños con tachas doradas. Envío a toda Colombia y pago contra entrega: adelantas solo el envío y el resto al recibir.';
 
 // Imagen que aparece al compartir el link (WhatsApp, Facebook, Instagram,
 // iMessage...): 1200×630, fondo negro con el logo dorado. Se regenera con
@@ -15,7 +15,7 @@ const OG_IMAGE = {
   width: 1200,
   height: 630,
   type: 'image/jpeg',
-  alt: `${STORE_NAME} — Tienda de zapatos multimarca en Colombia`,
+  alt: `${STORE_NAME} — Sandalias para mujer en Colombia`,
 };
 
 export const metadata: Metadata = {
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     template: `%s — ${STORE_NAME}`,
   },
   description: DESCRIPTION,
-  keywords: ['zapatos Colombia', 'On Cloud Colombia', 'Nike Colombia', 'Adidas Colombia', 'Jordan Colombia', 'Hoka Colombia', 'Onitsuka Tiger Colombia', 'tienda de zapatos Bogotá', 'zapatos Medellín', 'pago contra entrega Colombia'],
+  keywords: ['sandalias mujer Colombia', 'sandalias plataforma', 'sandalias Guess Colombia', 'sandalias con tachas', 'slides mujer', 'sandalias Bogotá', 'sandalias Medellín', 'pago contra entrega'],
   openGraph: {
     title: TITLE,
     description: DESCRIPTION,

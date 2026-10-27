@@ -13,7 +13,7 @@ function pageUrl(): string {
   return typeof window !== 'undefined' ? window.location.href.split('#')[0] : '';
 }
 
-export function generalMessage(topic = 'Quiero información sobre sus zapatos.'): string {
+export function generalMessage(topic = 'Quiero información sobre sus sandalias.'): string {
   return withTag(WA_TAGS.info, `${HELLO}\n${topic}`);
 }
 
@@ -22,7 +22,7 @@ export function catalogMessage(): string {
 }
 
 export function adviceMessage(): string {
-  return withTag(WA_TAGS.asesoria, `${HELLO}\nQuiero asesoría para elegir mis zapatos.\n\n• Para: (hombre / mujer)\n• Uso: (diario / correr / gym / formal)\n• Mi talla: \n• Presupuesto aprox.: `);
+  return withTag(WA_TAGS.asesoria, `${HELLO}\nQuiero asesoría para elegir mis sandalias.\n\n• Estilo: (plataforma / plana / con tachas / tacón)\n• Uso: (diario / playa / salir / formal)\n• Mi talla: \n• Presupuesto aprox.: `);
 }
 
 export function sizeHelpMessage(): string {
@@ -34,7 +34,7 @@ export function exchangeMessage(hours = 48): string {
 }
 
 export function brandMessage(brand: string): string {
-  return withTag(WA_TAGS.catalogo, `${HELLO}\nMe interesan los zapatos *${brand}*. ¿Qué modelos y tallas tienen disponibles?\n\n${pageUrl()}`);
+  return withTag(WA_TAGS.catalogo, `${HELLO}\nMe interesan las sandalias *${brand}*. ¿Qué modelos y tallas tienen disponibles?\n\n${pageUrl()}`);
 }
 
 export function filteredCatalogMessage(filters: string[]): string {

@@ -4,7 +4,7 @@ const STORE_NAME = process.env.NEXT_PUBLIC_STORE_NAME || 'Neutro Store';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: `${STORE_NAME} — Tienda de zapatos en Colombia`,
+    name: `${STORE_NAME} — Sandalias para mujer en Colombia`,
     short_name: STORE_NAME,
     description: 'Zapatos multimarca con envío a toda Colombia. Transferencia o pago contra entrega.',
     start_url: '/',

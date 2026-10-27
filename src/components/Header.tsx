@@ -14,10 +14,9 @@ import SafeImage from './SafeImage';
 import MobileMenu from './MobileMenu';
 import { CartIcon, ChevronIcon, CloseIcon, MenuIcon, SearchIcon } from './icons';
 
-const MAIN_LINKS = [
-  { href: '/catalogo?genero=hombre', label: 'Hombre' },
-  { href: '/catalogo?genero=mujer', label: 'Mujer' },
-];
+// La tienda es de sandalias para mujer: "Mujer" va primero y "Hombre"
+// queda al final del menú, discreto.
+const MAIN_LINKS = [{ href: '/catalogo?genero=mujer', label: 'Mujer' }];
 
 export default function Header() {
   const router = useRouter();
@@ -178,14 +177,14 @@ export default function Header() {
                 onClick={() => setOpenMenu((m) => (m === 'estilos' ? null : 'estilos'))}
                 className="flex items-center gap-1 px-3 py-2 uppercase transition-colors hover:text-primary"
               >
-                Estilos <ChevronIcon size={12} dir={openMenu === 'estilos' ? 'up' : 'down'} />
+                Colecciones <ChevronIcon size={12} dir={openMenu === 'estilos' ? 'up' : 'down'} />
               </button>
               {openMenu === 'estilos' && (
                 <div className="absolute left-0 top-full z-10 mt-3 w-60 animate-slideUp rounded-2xl border border-border bg-white p-2 shadow-dark">
                   {collectionsMenu.map((c) => (
                     <Link
                       key={c.value}
-                      href={`/catalogo?estilo=${encodeURIComponent(c.value)}`}
+                      href={`/catalogo?genero=mujer&estilo=${encodeURIComponent(c.value)}`}
                       className="block rounded-lg px-3 py-2.5 text-sm font-bold normal-case tracking-normal text-ink transition-colors hover:bg-cream-alt hover:text-primary"
                     >
                       {c.label}
@@ -198,6 +197,9 @@ export default function Header() {
 
           <Link href="/catalogo?ofertas=1" className="px-3 py-2 text-urgent transition-colors hover:text-ink">
             Ofertas 🔥
+          </Link>
+          <Link href="/catalogo?genero=hombre" className="px-3 py-2 text-[11px] text-muted transition-colors hover:text-ink">
+            Hombre
           </Link>
           <Link href="/guia-de-tallas" className="hidden px-3 py-2 transition-colors hover:text-primary xl:block">
             Guía de tallas

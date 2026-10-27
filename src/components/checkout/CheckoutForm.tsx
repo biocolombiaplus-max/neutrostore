@@ -409,7 +409,7 @@ export default function CheckoutForm({
         <p className="mt-2.5 rounded-xl bg-cream-alt/70 px-3 py-2.5 text-[12px] leading-snug text-ink">
           💬 Un <strong>asesor real</strong> te confirma talla y disponibilidad por WhatsApp
           {method === 'contra_entrega'
-            ? ` · tus zapatos los pagas en efectivo al recibirlos (${settings.shipping.deliveryTime}).`
+            ? ` · tus sandalias las pagas en efectivo al recibirlas (${settings.shipping.deliveryTime}).`
             : ' y te pasa la cuenta oficial Bancolombia.'}
         </p>
       </fieldset>

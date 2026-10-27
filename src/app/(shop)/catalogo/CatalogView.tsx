@@ -393,8 +393,8 @@ function CatalogoContent({ initialProducts }: { initialProducts?: Product[] }) {
                 <div className="grid grid-cols-3 gap-1 rounded-full bg-cream-alt p-1">
                   {[
                     { value: '', label: 'Todos', count: brandProducts.length },
-                    { value: 'hombre', label: 'Hombre', count: brandProducts.filter((p) => p.gender !== 'mujer').length },
                     { value: 'mujer', label: 'Mujer', count: brandProducts.filter((p) => p.gender !== 'hombre').length },
+                    { value: 'hombre', label: 'Hombre', count: brandProducts.filter((p) => p.gender !== 'mujer').length },
                   ].map((g) => (
                     <button
                       key={g.label}

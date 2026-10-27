@@ -1213,11 +1213,11 @@ export default function ConfiguracionPage() {
               setTiles(next);
             };
             const linkOptions = [
-              { label: 'Hombre', href: '/catalogo?genero=hombre' },
               { label: 'Mujer', href: '/catalogo?genero=mujer' },
+              { label: 'Hombre', href: '/catalogo?genero=hombre' },
               { label: 'Ofertas', href: '/catalogo?ofertas=1' },
               { label: 'Todo el catálogo', href: '/catalogo' },
-              ...settings.collectionsMenu.map((c) => ({ label: `Estilo: ${c.label}`, href: `/catalogo?estilo=${encodeURIComponent(c.value)}` })),
+              ...settings.collectionsMenu.map((c) => ({ label: `Colección mujer: ${c.label}`, href: `/catalogo?genero=mujer&estilo=${encodeURIComponent(c.value)}` })),
               ...settings.brands.map((b) => ({ label: `Marca: ${b}`, href: `/catalogo?marca=${encodeURIComponent(b)}` })),
             ];
             const known = linkOptions.some((o) => o.href === tile.href);

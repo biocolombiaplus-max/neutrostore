@@ -128,6 +128,9 @@ export default function MobileMenu({ open, onClose }: { open: boolean; onClose: 
           >
             Ver todo el catálogo <ChevronIcon dir="right" />
           </Link>
+          <Link href="/catalogo?genero=hombre" onClick={onClose} className="mt-2 block text-center text-xs font-bold text-muted underline">
+            Ver también hombre
+          </Link>
 
           {/* Marcas */}
           <p className="mt-7 text-[11px] font-extrabold uppercase tracking-[0.22em] text-muted">Marcas</p>
@@ -154,12 +157,12 @@ export default function MobileMenu({ open, onClose }: { open: boolean; onClose: 
           {/* Estilos */}
           {collectionsMenu.length > 0 && (
             <>
-              <p className="mt-7 text-[11px] font-extrabold uppercase tracking-[0.22em] text-muted">Estilos</p>
+              <p className="mt-7 text-[11px] font-extrabold uppercase tracking-[0.22em] text-muted">Colecciones</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {collectionsMenu.map((c) => (
                   <Link
                     key={c.value}
-                    href={`/catalogo?estilo=${encodeURIComponent(c.value)}`}
+                    href={`/catalogo?genero=mujer&estilo=${encodeURIComponent(c.value)}`}
                     onClick={onClose}
                     className="rounded-full bg-cream-alt px-4 py-2 text-sm font-bold text-ink"
                   >

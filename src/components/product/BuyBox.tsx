@@ -355,7 +355,7 @@ export default function BuyBox({
                 recommended
                 icon="💵"
                 title="Pago contra entrega"
-                lines={[`Pagas tus zapatos (${formatPrice(cod.payOnDelivery)}) en efectivo al recibirlos`, `Solo ${formatPrice(cod.payNow)} del envío para despachar`]}
+                lines={[`Pagas tus sandalias (${formatPrice(cod.payOnDelivery)}) en efectivo al recibirlas`, `Solo ${formatPrice(cod.payNow)} del envío para despachar`]}
                 cta="Pedir por WhatsApp · contra entrega"
                 onClick={() => openBuy('contra_entrega')}
               />

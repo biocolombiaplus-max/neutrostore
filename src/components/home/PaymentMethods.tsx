@@ -78,7 +78,7 @@ export default function PaymentMethods() {
               <h3 className="mt-4 text-2xl font-black uppercase">Pago contra entrega</h3>
               <p className="mt-3 text-sm font-medium leading-relaxed text-ink/80">
                 Hoy pagas solo <strong>{formatPrice(payments.codAdvance)}</strong> del envío por transferencia o depósito en Bancolombia
-                para garantizar tu pedido. <strong>Tus zapatos los pagas en efectivo cuando los recibes</strong> en la dirección que nos indiques:{' '}
+                para garantizar tu pedido. <strong>Tus sandalias las pagas en efectivo cuando las recibes</strong> en la dirección que nos indiques:{' '}
                 <strong>{formatPrice(restCod)}</strong> por par.
               </p>
               <div className="mt-6 grid grid-cols-2 gap-3 text-center">

@@ -13,8 +13,8 @@ export default function HowItWorks() {
       icon: '📦',
       title: 'Recibe y estrena',
       text: payments.codEnabled
-        ? 'Despachamos con Servientrega y te llega a casa. En contra entrega pagas tus zapatos en efectivo al recibirlos.'
-        : 'Despachamos con Servientrega y recibes tus zapatos en la puerta de tu casa.',
+        ? 'Despachamos con Servientrega y te llega a casa. En contra entrega pagas tus sandalias en efectivo al recibirlas.'
+        : 'Despachamos con Servientrega y recibes tus sandalias en la puerta de tu casa.',
     },
   ];
 

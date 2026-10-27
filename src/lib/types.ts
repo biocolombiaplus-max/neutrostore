@@ -33,8 +33,8 @@ export interface ProductReview {
 // Para quién es el modelo — se usa en los filtros del catálogo y para
 // en el panel al crear productos.
 export const GENDERS = [
-  { value: 'hombre', label: 'Hombre' },
   { value: 'mujer', label: 'Mujer' },
+  { value: 'hombre', label: 'Hombre' },
   { value: 'unisex', label: 'Unisex' },
 ] as const;
 

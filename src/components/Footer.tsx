@@ -98,9 +98,11 @@ export default function Footer() {
         <div>
           <h4 className="mb-4 text-xs font-extrabold uppercase tracking-[0.2em] text-primary-light">Comprar</h4>
           <ul className="space-y-2.5 text-sm text-white/75">
-            <li><Link href="/catalogo?genero=hombre" className="hover:text-white">Hombre</Link></li>
-            <li><Link href="/catalogo?genero=mujer" className="hover:text-white">Mujer</Link></li>
+            <li><Link href="/catalogo?genero=mujer" className="hover:text-white">Sandalias mujer</Link></li>
+            <li><Link href="/catalogo?genero=mujer&estilo=plataformas" className="hover:text-white">Plataformas</Link></li>
+            <li><Link href="/catalogo?genero=mujer&estilo=tachas" className="hover:text-white">Con tachas</Link></li>
             <li><Link href="/catalogo?ofertas=1" className="hover:text-white">Ofertas</Link></li>
+            <li><Link href="/catalogo?genero=hombre" className="hover:text-white/70">Hombre</Link></li>
             <li><Link href="/catalogo" className="hover:text-white">Todo el catálogo</Link></li>
             <li><Link href="/guia-de-tallas" className="hover:text-white">Guía de tallas</Link></li>
           </ul>

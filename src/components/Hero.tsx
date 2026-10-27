@@ -63,7 +63,7 @@ export default function Hero() {
               fill
               priority={i === 0}
               sizes="100vw"
-              className={classNames('object-cover', i === activeIndex && 'animate-kenburns')}
+              className={classNames('object-cover object-[50%_80%] lg:object-[50%_95%]', i === activeIndex && 'animate-kenburns')}
             />
           </div>
         ))}

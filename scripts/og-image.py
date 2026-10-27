@@ -16,7 +16,7 @@ d = ImageDraw.Draw(bg)
 sans = ImageFont.truetype('/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf', 34)
 small = ImageFont.truetype('/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf', 26)
 for text, font, y, fill in [
-    ('ZAPATOS MULTIMARCA EN COLOMBIA', sans, 450, (241, 220, 154)),
+    ('SANDALIAS PARA MUJER EN COLOMBIA', sans, 450, (241, 220, 154)),
     ('Envío a toda Colombia · Pago contra entrega · Nequi y Bancolombia', small, 506, (235, 235, 235)),
 ]:
     w = d.textlength(text, font=font)

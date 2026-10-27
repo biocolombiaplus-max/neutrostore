@@ -1,6 +1,12 @@
 import { classNames } from '@/lib/utils';
 import SafeImage from '../SafeImage';
 
+// Los recortes (fondo transparente) son PNG/WebP con "cutout" en el nombre o
+// cualquier PNG; el resto se trata como foto.
+function isCutout(src: string): boolean {
+  return /\.png($|\?)|cutout|f_png/i.test(src);
+}
+
 // "Escenario" para mostrar el zapato recortado: foco de luz detrás, sombra
 // de contacto realista en el piso y el zapato flotando suavemente.
 export default function ShoeStage({
@@ -20,6 +26,25 @@ export default function ShoeStage({
   tilt?: boolean;
   glow?: boolean;
 }) {
+  // Una foto normal (JPG/WebP, con fondo) no se puede "flotar" como un
+  // recorte: se muestra como foto de estudio con marco dorado.
+  if (!isCutout(src)) {
+    return (
+      <div className={classNames('group/stage relative', className)}>
+        <div className="absolute inset-0 overflow-hidden rounded-[22px] shadow-dark ring-1 ring-primary/40">
+          <SafeImage
+            src={src}
+            alt={alt}
+            fill
+            sizes={sizes}
+            className="object-cover object-[50%_75%] transition-transform duration-700 group-hover/stage:scale-[1.05]"
+          />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={classNames('group/stage relative', className)}>
       {glow && (
