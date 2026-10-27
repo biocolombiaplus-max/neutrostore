@@ -1,0 +1,449 @@
+// Estampado del color (animal print, camuflaje, mezcla...). "foto" usa un
+// acercamiento de la foto del zapato como muestra.
+export type ColorPattern = 'leopardo' | 'cebra' | 'vaca' | 'serpiente' | 'camuflaje' | 'multicolor' | 'degradado' | 'foto';
+
+export interface ProductColor {
+  name: string;
+  // Color principal (capellada) y, opcionales, el color de la suela (dos
+  // tonos) y el del logo / detalles del zapato.
+  hex: string;
+  hex2?: string;
+  hex3?: string;
+  pattern?: ColorPattern;
+  // Estampado solo del logo / detalles (con hex3 como color base).
+  logoPattern?: ColorPattern;
+  // Foto principal de este color (la primera de `images`).
+  image?: string;
+  // Todas las fotos de este color (ángulos), en el orden de la galería.
+  images?: string[];
+}
+
+export interface ProductReview {
+  name: string;
+  city?: string;
+  rating: number;
+  text: string;
+  date?: string;
+  // Reseña de una compra real (llegó por el link de reseña de un pedido).
+  verified?: boolean;
+  // Cómo le quedó la talla al cliente.
+  fit?: 'pequena' | 'perfecta' | 'grande';
+}
+
+// Para quién es el modelo — se usa en los filtros del catálogo y para
+// en el panel al crear productos.
+export const GENDERS = [
+  { value: 'hombre', label: 'Hombre' },
+  { value: 'mujer', label: 'Mujer' },
+  { value: 'unisex', label: 'Unisex' },
+] as const;
+
+export type Gender = (typeof GENDERS)[number]['value'];
+
+// Cómo calza la horma comparada con una talla normal — aparece como un
+// medidor en la ficha del producto para que el cliente elija bien a la
+// primera y no tenga que hacer cambios.
+export const FITS = [
+  { value: 'pequena', label: 'Horma pequeña', tip: 'Te recomendamos pedir media talla o una talla más.' },
+  { value: 'normal', label: 'Horma normal', tip: 'Pide tu talla de siempre.' },
+  { value: 'grande', label: 'Horma grande', tip: 'Si estás entre dos tallas, elige la menor.' },
+] as const;
+
+export type Fit = (typeof FITS)[number]['value'];
+
+export interface Product {
+  id: string;
+  slug: string;
+  title: string;
+  brand: string;
+  // Colección / línea dentro de la marca (ej: "Air Force", "Cloud", "Samba").
+  // Si está vacía se deduce del nombre del modelo.
+  line?: string;
+  gender: Gender;
+  description: string;
+  price: number;
+  compareAtPrice?: number | null;
+  // Precio pagando contra entrega (incluye el envío). Si no se define, se
+  // cobra el precio normal + el envío del adelanto.
+  codPrice?: number | null;
+  images: string[];
+  sizes: string[];
+  colors: ProductColor[];
+  collection: string;
+  fit: Fit;
+  stock: number;
+  featured: boolean;
+  isNew?: boolean;
+  active: boolean;
+  soldCount?: number;
+  reviewsCount?: number;
+  reviews?: ProductReview[];
+  createdAt?: number;
+  updatedAt?: number;
+}
+
+export type ProductInput = Omit<Product, 'id' | 'createdAt' | 'updatedAt'>;
+
+export interface CartItem {
+  productId: string;
+  slug: string;
+  title: string;
+  brand?: string;
+  price: number;
+  codPrice?: number;
+  image: string;
+  size: string;
+  // Equivalencia US de la talla (solo informativa: la talla del pedido es la CO).
+  sizeUs?: string;
+  color: string;
+  quantity: number;
+  // ID del artículo en el catálogo de Meta (para el píxel).
+  metaId?: string;
+}
+
+// Los dos únicos métodos de pago de la tienda. Ambos terminan confirmando
+// el pedido por WhatsApp:
+//  - transferencia: el cliente paga el total por transferencia o depósito.
+//  - contra_entrega: el cliente adelanta solo el valor del envío por
+//    transferencia/depósito y paga el resto en efectivo al recibir.
+export type PaymentMethod = 'transferencia' | 'contra_entrega';
+
+export type OrderStatus = 'pendiente' | 'confirmado' | 'enviado' | 'entregado' | 'cancelado';
+
+export interface OrderCustomer {
+  name: string;
+  phone: string;
+  cedula?: string;
+  address: string;
+  reference?: string;
+  city: string;
+  province: string;
+  note?: string;
+  locationUrl?: string;
+}
+
+// Transportadoras con las que se despacha en Colombia.
+export const CARRIERS = ['Servientrega', 'Interrapidísimo', 'Coordinadora', 'Envía', 'TCC'] as const;
+
+export type Carrier = (typeof CARRIERS)[number];
+
+export interface Order {
+  id: string;
+  orderNumber: string;
+  items: CartItem[];
+  subtotal: number;
+  discount?: number;
+  shipping: number;
+  total: number;
+  // Lo que el cliente paga ANTES del despacho (todo en transferencia, solo
+  // el envío en contra entrega) y lo que paga al recibir.
+  payNow: number;
+  payOnDelivery: number;
+  customer: OrderCustomer;
+  paymentMethod: PaymentMethod;
+  status: OrderStatus;
+  carrier?: Carrier;
+  trackingNumber?: string;
+  // Código de fidelización (reseña + cupón) creado al entregar el pedido.
+  loyaltyCode?: string;
+  // Foto o PDF de la guía de envío (para enviársela al cliente).
+  guideUrl?: string;
+  guideType?: 'image' | 'pdf';
+  couponCode?: string;
+  // "whatsapp": el cliente confirmó su pedido por WhatsApp desde la web (la
+  // venta se cierra en el chat y luego se marca en el panel).
+  channel?: 'whatsapp';
+  // Datos del anuncio que trajo al cliente (para avisar la venta a Meta al cerrarla).
+  tracking?: { vid?: string; fbp?: string; fbc?: string; ua?: string };
+  createdAt: number;
+}
+
+export type OrderInput = Omit<Order, 'id' | 'createdAt' | 'orderNumber'>;
+
+// Tarjeta de la sección "Compra por categoría" del inicio.
+export interface CategoryTile {
+  label: string;
+  sub: string;
+  href: string;
+  image: string;
+  buttonText: string;
+}
+
+export interface CategoryTilesSettings {
+  enabled: boolean;
+  eyebrow: string;
+  heading: string;
+  tiles: CategoryTile[];
+}
+
+export interface TrustItem {
+  icon: string;
+  title: string;
+  sub: string;
+}
+
+export interface BenefitItem {
+  icon: string;
+  title: string;
+  text: string;
+}
+
+export interface TestimonialItem {
+  name: string;
+  city: string;
+  review: string;
+}
+
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+export interface ProvinceRate {
+  province: string;
+  rate: number;
+}
+
+export interface ShippingSettings {
+  // Costo de envío (Servientrega) cuando el cliente paga por transferencia.
+  defaultRate: number;
+  rates: ProvinceRate[];
+  deliveryTime: string;
+}
+
+export interface BankAccount {
+  bank: string;
+  type: string;
+  number: string;
+  holder: string;
+  idNumber: string;
+}
+
+export interface PaymentSettings {
+  // Valor del envío que se adelanta en el pago contra entrega.
+  codAdvance: number;
+  codEnabled: boolean;
+  // Precio por par pagando contra entrega (incluye el envío). Lo usan los
+  // productos que no tienen su propio precio contra entrega. 0 = precio
+  // normal + envío del adelanto.
+  codUnitPrice: number;
+  // Precio sugerido al crear un producto nuevo (precio por transferencia).
+  defaultPrice: number;
+  bankAccounts: BankAccount[];
+  transferNote: string;
+}
+
+// Marca estrella: la que más vende la tienda. Se destaca con un bloque
+// premium en el inicio, primera en el menú de marcas, en la cinta de marcas,
+// con insignia en sus productos y con portada propia en el catálogo.
+export interface FeaturedBrand {
+  enabled: boolean;
+  name: string;
+  eyebrow: string;
+  heading: string;
+  text: string;
+  image: string;
+  badge: string;
+  bullets: string[];
+  buttonText: string;
+}
+
+export interface SiteColors {
+  primary: string;
+  primaryHover: string;
+  primaryLight: string;
+  cream: string;
+  creamAlt: string;
+  ink: string;
+  muted: string;
+  border: string;
+}
+
+export interface CollectionMenuItem {
+  label: string;
+  value: string;
+}
+
+// Transportadora principal con la que se despachan los pedidos.
+// Si logoUrl está vacío se muestra el logotipo incluido en la tienda.
+export interface CourierSettings {
+  name: string;
+  logoUrl: string;
+}
+
+// Logo de un medio de pago. Los id conocidos (visa, mastercard, bancolombia,
+// nequi…) tienen un diseño incluido; imageUrl lo reemplaza por el logo
+// oficial subido desde el panel.
+export interface PaymentLogo {
+  id: string;
+  name: string;
+  imageUrl: string;
+  enabled: boolean;
+}
+
+export interface SiteSettings {
+  storeName: string;
+  logoUrl: string;
+  logoHeight: number;
+  whatsappCountryCode: string;
+  whatsappNumber: string;
+  notificationEmail: string;
+  // Píxel de Meta (Facebook / Instagram) y verificación del dominio.
+  metaPixelId: string;
+  metaDomainVerification: string;
+  // Las estadísticas del panel cuentan pedidos desde esta fecha (ms).
+  statsResetAt: number;
+  // Quincenas de Juan Carlos ya pagadas (ej: "2026-10-1", "2026-10-2").
+  commissionPaid: string[];
+  collectionsMenu: CollectionMenuItem[];
+  brands: string[];
+  featuredBrand: FeaturedBrand;
+  colors: SiteColors;
+  fonts: {
+    headingFont: string;
+    bodyFont: string;
+  };
+  announcementMessages: string[];
+  hero: {
+    eyebrow: string;
+    heading: string;
+    subtext: string;
+    images: string[];
+    badge1: string;
+    badge2: string;
+    badge3: string;
+    button1Text: string;
+    button1Url: string;
+    button2Text: string;
+    button2Url: string;
+    titleSize: 'sm' | 'md' | 'lg' | 'xl';
+    subtextSize: 'sm' | 'md' | 'lg';
+  };
+  shipping: ShippingSettings;
+  courier: CourierSettings;
+  payments: PaymentSettings;
+  paymentLogos: PaymentLogo[];
+  // Plazo (en horas desde que recibe el pedido) para pedir cambio de talla.
+  exchangeWindowHours: number;
+  categoryTiles: CategoryTilesSettings;
+  // Fotos reales de clientes y paquetes despachados (prueba social).
+  realDeliveries: { enabled: boolean; heading: string; photos: string[] };
+  // Capturas de WhatsApp de clientes felices (prueba social).
+  chatProofs: { enabled: boolean; heading: string; subheading: string; photos: string[] };
+  trustItems: TrustItem[];
+  benefitsHeading: string;
+  benefits: BenefitItem[];
+  testimonialsHeading: string;
+  testimonialsSubtext: string;
+  testimonials: TestimonialItem[];
+  faqs: FaqItem[];
+  cta: {
+    eyebrow: string;
+    heading: string;
+    text: string;
+    buttonText: string;
+    buttonUrl: string;
+  };
+  footer: {
+    brandText: string;
+    contactText: string;
+    email: string;
+    address: string;
+    instagram: string;
+    facebook: string;
+    tiktok: string;
+    youtube: string;
+    // Dirección o coordenadas que se muestran en el mapa de Google del pie de
+    // página (vacío = sin mapa).
+    mapQuery: string;
+    copyrightText: string;
+  };
+}
+
+// ——— Fidelización ———
+// Un registro por pedido entregado. Su id es el código del cupón (ej:
+// GRACIAS-ANA7K3), que también identifica el link de reseña.
+export interface LoyaltyItem {
+  productId: string;
+  slug: string;
+  title: string;
+  image: string;
+  size: string;
+  color: string;
+}
+
+export interface LoyaltyReview {
+  productId: string;
+  rating: number;
+  text: string;
+  fit?: 'pequena' | 'perfecta' | 'grande';
+}
+
+export interface LoyaltyRecord {
+  code: string;
+  orderId: string;
+  orderNumber: string;
+  customerName: string;
+  phone: string;
+  city: string;
+  items: LoyaltyItem[];
+  couponPercent: number;
+  couponMethod: PaymentMethod;
+  couponExpiresAt: number;
+  couponUsed: boolean;
+  couponUsedOrder?: string;
+  reviewStatus: 'pendiente' | 'enviada' | 'aprobada' | 'oculta';
+  reviews?: LoyaltyReview[];
+  reviewSubmittedAt?: number;
+  reminderSentAt?: number;
+  createdAt: number;
+}
+
+// ——— Visitantes (analítica tipo Shopify) ———
+export type VisitorStage = 'visita' | 'producto' | 'carrito' | 'checkout' | 'compra';
+
+export interface VisitorProduct {
+  slug: string;
+  title: string;
+  image: string;
+}
+
+export interface VisitorCartItem {
+  productId: string;
+  slug: string;
+  title: string;
+  image: string;
+  size: string;
+  sizeUs?: string;
+  color: string;
+  quantity: number;
+  price: number;
+  codPrice?: number;
+  brand?: string;
+  metaId?: string;
+}
+
+export interface Visitor {
+  id: string;
+  firstSeen: number;
+  lastSeen: number;
+  visits: number;
+  pageviews: number;
+  lastPath: string;
+  landing: string;
+  source: string;
+  campaign: string;
+  device: string;
+  city: string;
+  region: string;
+  products: VisitorProduct[];
+  cart: VisitorCartItem[];
+  cartValue: number;
+  stage: VisitorStage;
+  stageAt: number;
+  name: string;
+  phone: string;
+  orderNumber: string;
+  recoveryAt?: number;
+  recoveryCount?: number;
+}

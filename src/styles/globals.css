@@ -1,0 +1,300 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Colores de marca en "r g b" (sin comas) para soportar opacidad de Tailwind.
+     Valores por defecto (dorado Neutro / negro / blanco); el panel
+     /admin/configuracion los sobrescribe en vivo cuando hay ajustes guardados. */
+  --color-primary: 184 146 58;
+  --color-primary-hover: 150 116 42;
+  --color-primary-light: 217 190 114;
+  --color-cream: 255 255 255;
+  --color-cream-alt: 246 242 234;
+  --color-ink: 14 14 14;
+  --color-muted: 110 103 89;
+  --color-border: 231 225 212;
+  --gold-gradient: linear-gradient(135deg, #e2c877 0%, #c9a646 38%, #a8822c 70%, #d9be72 100%);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* La página solo se desliza de arriba a abajo (como una app): nada puede
+   moverla hacia los lados. "clip" es el bloqueo que respeta Safari en
+   iPhone (hidden queda de respaldo para navegadores viejos). */
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-x: clip;
+  overscroll-behavior-x: none;
+}
+
+body {
+  background-color: rgb(var(--color-cream));
+  color: rgb(var(--color-ink));
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background-color: rgb(var(--color-primary));
+  color: #fff;
+}
+
+@layer components {
+  /* ── Botones ──────────────────────────────────────────────────────────
+     Todos los botones grandes tienen: brillo que cruza (shine), elevación al
+     pasar el mouse y "clic" al presionar, para que se sientan vivos tanto en
+     PC como en celular. */
+  .btn-base {
+    @apply relative inline-flex select-none items-center justify-center gap-2 overflow-hidden rounded-btn px-5 py-4 text-center text-sm font-extrabold uppercase leading-tight tracking-wide transition-all duration-300 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60 sm:px-7 sm:tracking-wider;
+  }
+  .btn-base::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.45) 50%, transparent 70%);
+    transform: translateX(-120%);
+    transition: transform 0.8s ease;
+    pointer-events: none;
+  }
+  .btn-base:hover::after {
+    transform: translateX(120%);
+  }
+
+  .btn-primary {
+    @apply btn-base text-ink shadow-lift hover:-translate-y-0.5 hover:shadow-[0_18px_40px_rgba(184,146,58,0.45)];
+    background: var(--gold-gradient);
+    background-size: 200% 200%;
+  }
+
+  .btn-dark {
+    @apply btn-base bg-ink text-white shadow-dark hover:-translate-y-0.5 hover:bg-black;
+  }
+
+  .btn-secondary {
+    @apply btn-base border-2 border-ink bg-white text-ink hover:-translate-y-0.5 hover:bg-ink hover:text-white;
+  }
+
+  .btn-outline-light {
+    @apply btn-base border-2 border-white/80 text-white hover:bg-white hover:text-ink;
+  }
+
+  .btn-whatsapp {
+    @apply btn-base bg-whatsapp text-white shadow-[0_12px_28px_rgba(37,211,102,0.35)] hover:-translate-y-0.5 hover:brightness-105;
+  }
+
+  /* CTA principal del hero: oro en movimiento + halo que respira + flecha que invita. */
+  .btn-hero-wrap {
+    @apply relative block w-full sm:inline-block sm:w-auto;
+  }
+  .btn-hero-wrap::before {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 999px;
+    background: var(--gold-gradient);
+    filter: blur(16px);
+    opacity: 0.55;
+    animation: hero-halo 2.6s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .btn-hero {
+    @apply btn-base w-full gap-3 py-[1.15rem] pl-8 pr-2.5 text-[15px] text-ink sm:w-auto sm:text-base;
+    letter-spacing: 0.14em;
+    background: linear-gradient(110deg, #a8822c 0%, #e2c877 22%, #f6e7b0 34%, #c9a646 50%, #a8822c 66%, #e2c877 84%, #a8822c 100%);
+    background-size: 250% 100%;
+    animation: hero-gold 5s linear infinite;
+    box-shadow:
+      0 14px 36px rgba(184, 146, 58, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+  }
+  .btn-hero:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 20px 48px rgba(184, 146, 58, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+  }
+  .btn-hero-arrow {
+    @apply ml-auto flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ink text-lg text-primary-light sm:ml-2;
+  }
+  .btn-hero-arrow > span {
+    animation: hero-arrow 1.6s ease-in-out infinite;
+  }
+
+  /* Botón de compra naranja: el único color "tócame" de la ficha. */
+  .btn-buy {
+    @apply btn-base gap-2 rounded-2xl py-4 text-[15px] text-white;
+    background: linear-gradient(135deg, #ff8a00 0%, #ff6a00 55%, #f04e00 100%);
+    box-shadow:
+      0 12px 28px rgba(255, 106, 0, 0.38),
+      inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  }
+  .btn-buy:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.04);
+  }
+  .btn-buy-pulse {
+    animation: buy-pulse 2.2s ease-in-out infinite;
+  }
+
+  /* Brillo automático permanente para los CTA principales (sin hover). */
+  .btn-shine::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -60%;
+    width: 40%;
+    height: 100%;
+    background: linear-gradient(110deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+    animation: btn-shine 3.2s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .text-gold-gradient {
+    background: var(--gold-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .bg-gold-gradient {
+    background: var(--gold-gradient);
+  }
+
+  .container-page {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-eyebrow {
+    @apply text-[11px] font-extrabold uppercase tracking-[0.25em] text-primary;
+  }
+
+  .section-title {
+    @apply font-heading text-2xl font-black uppercase tracking-tight text-ink sm:text-4xl;
+  }
+
+  /* Campo de formulario grande y bien marcado (compra). */
+  .input-pro {
+    @apply w-full rounded-xl border-2 border-ink/15 bg-cream-alt/40 px-4 py-3.5 text-base font-semibold text-ink placeholder:font-normal placeholder:text-muted/60 transition-all focus:border-buy focus:bg-white focus:outline-none focus:ring-4 focus:ring-buy/15 disabled:opacity-60;
+  }
+  .input {
+    @apply w-full rounded-xl border border-border bg-white px-4 py-3.5 text-[15px] text-ink placeholder:text-muted/70 transition-colors focus:border-ink focus:outline-none focus:ring-2 focus:ring-primary/30;
+  }
+
+  .skeleton {
+    @apply animate-pulse bg-border/60;
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes hero-gold {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -150% 0;
+  }
+}
+@keyframes hero-halo {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.97);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.02);
+  }
+}
+@keyframes hero-arrow {
+  0%,
+  100% {
+    transform: translateX(-2px);
+  }
+  50% {
+    transform: translateX(3px);
+  }
+}
+@keyframes buy-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 12px 28px rgba(255, 106, 0, 0.38),
+      0 0 0 0 rgba(255, 106, 0, 0.45);
+  }
+  50% {
+    box-shadow:
+      0 12px 28px rgba(255, 106, 0, 0.38),
+      0 0 0 8px rgba(255, 106, 0, 0);
+  }
+}
+@keyframes btn-shine {
+  0% {
+    left: -60%;
+  }
+  55%,
+  100% {
+    left: 130%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Escenario de la marca estrella: el zapato flota y su sombra respira. */
+@keyframes stageFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+@keyframes shadowPulse {
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scaleX(0.86);
+    opacity: 0.55;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}

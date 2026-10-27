@@ -1,0 +1,65 @@
+import ProductView from './ProductView';
+import { getActiveProductsServer, getProductBySlugServer } from '@/lib/productsServer';
+import { slimProduct } from '@/lib/productMap';
+
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://neutrostore.vercel.app').replace(/\/$/, '');
+
+const absolute = (url: string) => (url.startsWith('http') ? url : `${SITE_URL}${url.startsWith('/') ? '' : '/'}${url}`);
+
+export default async function ProductPage({ params }: { params: { slug: string } }) {
+  const [product, all] = await Promise.all([getProductBySlugServer(params.slug), getActiveProductsServer()]);
+  // Recomendados: mismo estilo, luego misma marca, luego los más vendidos.
+  const related = product
+    ? all
+        .filter((p) => p.id !== product.id)
+        .map((p) => ({ p, score: (p.collection === product.collection ? 2 : 0) + (p.brand === product.brand ? 1 : 0) }))
+        .sort((a, b) => b.score - a.score || (b.p.soldCount ?? 0) - (a.p.soldCount ?? 0))
+        .slice(0, 4)
+        .map(({ p }) => slimProduct(p))
+    : [];
+  const active = product && product.active ? product : null;
+
+  // Ficha de producto para Google (precio, disponibilidad, reseñas, fotos):
+  // permite que aparezca con estrellas y precio en los resultados.
+  const reviews = active?.reviews ?? [];
+  const jsonLd = active && {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: active.title,
+    image: active.images.slice(0, 6).map(absolute),
+    description: active.description || `${active.title}. Envío a toda Colombia y pago contra entrega.`,
+    sku: active.id,
+    ...(active.brand ? { brand: { '@type': 'Brand', name: active.brand } } : {}),
+    offers: {
+      '@type': 'Offer',
+      url: `${SITE_URL}/producto/${active.slug}`,
+      priceCurrency: 'COP',
+      price: String(Math.round(active.price)),
+      availability: active.stock === 0 ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
+      itemCondition: 'https://schema.org/NewCondition',
+      seller: { '@type': 'Organization', name: 'Neutro Store' },
+    },
+    ...(reviews.length > 0
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1),
+            reviewCount: Math.max(reviews.length, active.reviewsCount ?? 0),
+          },
+          review: reviews.slice(0, 5).map((r) => ({
+            '@type': 'Review',
+            author: { '@type': 'Person', name: r.name },
+            reviewRating: { '@type': 'Rating', ratingValue: r.rating, bestRating: 5 },
+            reviewBody: r.text,
+          })),
+        }
+      : {}),
+  };
+
+  return (
+    <>
+      {jsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />}
+      <ProductView initialProduct={product} related={related} />
+    </>
+  );
+}

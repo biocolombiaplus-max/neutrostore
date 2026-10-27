@@ -1,0 +1,33 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { getRelatedProducts } from '@/lib/productsClient';
+import type { Product } from '@/lib/types';
+import ProductGrid, { ProductGridSkeleton } from '../ProductGrid';
+
+export default function RelatedProducts({ product, initialProducts }: { product: Product; initialProducts?: Product[] }) {
+  const [products, setProducts] = useState<Product[] | null>(initialProducts?.length ? initialProducts : null);
+
+  useEffect(() => {
+    if (initialProducts?.length) return;
+    let cancelled = false;
+    getRelatedProducts(product, 4)
+      .then((list) => !cancelled && setProducts(list))
+      .catch(() => !cancelled && setProducts([]));
+    return () => {
+      cancelled = true;
+    };
+  }, [product, initialProducts]);
+
+  if (products !== null && products.length === 0) return null;
+
+  return (
+    <section className="border-t border-border bg-white py-14">
+      <div className="container-page">
+        <p className="section-eyebrow">Para que combines</p>
+        <h2 className="section-title mt-2 mb-8">También te puede gustar</h2>
+        {products === null ? <ProductGridSkeleton /> : <ProductGrid products={products} />}
+      </div>
+    </section>
+  );
+}

@@ -1,0 +1,92 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // Productos: lectura pública, escritura solo administradores.
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Pedidos: cualquiera puede crear un pedido (checkout público),
+    // pero solo el administrador puede leerlos, editarlos o borrarlos.
+    match /orders/{orderId} {
+      allow create: if isAdmin() || (
+        request.resource.data.keys().hasAll(['items', 'subtotal', 'total', 'customer', 'paymentMethod', 'status'])
+        && request.resource.data.status == 'pendiente'
+        && request.resource.data.paymentMethod in ['transferencia', 'contra_entrega']
+      );
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Lista de administradores: solo un admin ya autenticado puede leer/gestionar esta colección.
+    // El primer admin debe crearse manualmente desde la consola de Firebase (ver README).
+    match /admins/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if isAdmin();
+    }
+
+    // Fotos de productos guardadas en Firestore (cuando no se usa
+    // Cloudinary): cualquiera puede verlas, solo un admin puede subir o borrar.
+    match /images/{imageId} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+    }
+
+    // Configuración del sitio (textos, colores, WhatsApp, etc.): lectura
+    // pública, escritura solo administradores.
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Suscripciones de notificación push del celular de la administradora:
+    // el checkout (público, sin sesión) necesita LEERLAS para poder avisarle
+    // de un pedido nuevo, pero solo un admin ya logueado puede crear/borrar
+    // la suscripción de su propio dispositivo.
+    match /pushSubscriptions/{subId} {
+      allow read: if true;
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Fidelización (reseñas + cupón 10%): el código funciona como llave.
+    // El cliente puede leer su registro, enviar sus reseñas una sola vez y
+    // marcar su cupón como usado; todo lo demás es solo del administrador.
+    match /loyalty/{code} {
+      allow get: if true;
+      allow list, create, delete: if isAdmin();
+      allow update: if isAdmin()
+        || (resource.data.reviewStatus == 'pendiente'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reviews', 'reviewStatus', 'reviewSubmittedAt'])
+            && request.resource.data.reviewStatus == 'enviada')
+        || (resource.data.couponUsed == false
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['couponUsed', 'couponUsedOrder', 'couponUsedAt'])
+            && request.resource.data.couponUsed == true);
+    }
+
+    // Visitantes de la tienda (panel "Visitantes en vivo"). La tienda guarda
+    // la actividad sin iniciar sesión; solo el administrador puede ver la
+    // lista. Leer un registro por su id (secreto) permite recuperar el
+    // carrito desde el link que se le envía al cliente por WhatsApp.
+    match /visitors/{vid} {
+      allow get: if true;
+      allow list, delete: if isAdmin();
+      allow create, update: if isAdmin() || (
+        vid.matches('^[a-f0-9]{24}$')
+        && request.resource.data.keys().hasOnly(['firstSeen', 'visits', 'lastPath', 'landing', 'source', 'campaign', 'device',
+             'products', 'cart', 'cartValue', 'stage', 'stageAt', 'name', 'phone', 'orderNumber', 'city', 'region',
+             'lastSeen', 'pageviews', 'recoveryAt', 'recoveryCount'])
+        && request.resource.data.get('cart', []).size() <= 15
+        && request.resource.data.get('products', []).size() <= 6
+        && request.resource.data.get('stage', 'visita') in ['visita', 'producto', 'carrito', 'checkout', 'compra']
+      );
+    }
+  }
+}

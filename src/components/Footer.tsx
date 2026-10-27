@@ -1,0 +1,219 @@
+'use client';
+
+import { generalMessage } from '@/lib/wa-messages';
+import Image from 'next/image';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useSiteSettings } from '@/lib/settings-context';
+import { formatPrice, whatsappLinkTo } from '@/lib/utils';
+import PaymentBadges from '@/components/PaymentBadges';
+import { HELP_PAGES } from '@/lib/help-pages';
+import PaymentLogos, { CourierLogo } from '@/components/brand/PaymentLogos';
+import { WhatsAppIcon } from './icons';
+
+const SOCIALS: { key: 'instagram' | 'facebook' | 'tiktok' | 'youtube'; label: string }[] = [
+  { key: 'instagram', label: 'Instagram' },
+  { key: 'facebook', label: 'Facebook' },
+  { key: 'tiktok', label: 'TikTok' },
+  { key: 'youtube', label: 'YouTube' },
+];
+
+export default function Footer() {
+  const { storeName, logoUrl, whatsappCountryCode, whatsappNumber, footer, brands, payments, shipping } = useSiteSettings();
+  const socialLinks = SOCIALS.filter((s) => footer[s.key]);
+  const pathname = usePathname() ?? '';
+
+  // En el pago y la confirmación, pie mínimo: nada que distraiga de comprar.
+  if (pathname.startsWith('/checkout') || pathname.startsWith('/pedido-confirmado')) {
+    return (
+      <footer className="border-t border-border bg-white py-6 text-center text-xs text-muted">
+        <p className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 font-semibold">
+          <span>🔒 Compra segura</span>
+          <span>🚚 Envío con Servientrega</span>
+          <span>🔄 Cambio de talla en 48 h</span>
+        </p>
+        <p className="mt-2">
+          ¿Dudas?{' '}
+          <a
+            href={whatsappLinkTo(whatsappNumber, generalMessage('Tengo una duda con mi compra.'), whatsappCountryCode)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-bold text-ink underline"
+          >
+            Escríbenos por WhatsApp
+          </a>{' '}
+          · © {new Date().getFullYear()} {storeName}
+        </p>
+      </footer>
+    );
+  }
+
+  return (
+    <footer className="bg-ink text-white">
+      <div className="border-b border-white/10">
+        <div className="container-page grid gap-6 py-8 text-center sm:grid-cols-3 sm:text-left">
+          {[
+            { icon: '🚚', title: 'Envío con Servientrega', text: `A toda Colombia en ${shipping.deliveryTime}` },
+            { icon: '💵', title: 'Contra entrega', text: `Adelantas solo ${formatPrice(payments.codAdvance)}` },
+            { icon: '🛡️', title: 'Compra segura', text: 'Garantía Neutro' },
+          ].map((item) => (
+            <div key={item.title} className="flex items-center justify-center gap-3 sm:justify-start">
+              <span className="text-2xl">{item.icon}</span>
+              <span>
+                <span className="block text-sm font-extrabold uppercase">{item.title}</span>
+                <span className="block text-xs text-white/60">{item.text}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="container-page grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1.3fr]">
+        <div>
+          {logoUrl ? (
+            <span className="relative block h-16 w-32">
+              <Image src={logoUrl} alt={storeName} fill sizes="128px" className="object-contain object-left" />
+            </span>
+          ) : (
+            <p className="font-display text-2xl font-bold text-gold-gradient">{storeName}</p>
+          )}
+          <p className="mt-4 text-sm leading-relaxed text-white/65">{footer.brandText}</p>
+          {socialLinks.length > 0 && (
+            <div className="mt-5 flex flex-wrap gap-2">
+              {socialLinks.map((s) => (
+                <a
+                  key={s.key}
+                  href={footer[s.key]}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-full border border-white/20 px-4 py-2 text-xs font-bold transition-colors hover:border-primary hover:text-primary-light"
+                >
+                  {s.label}
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <h4 className="mb-4 text-xs font-extrabold uppercase tracking-[0.2em] text-primary-light">Comprar</h4>
+          <ul className="space-y-2.5 text-sm text-white/75">
+            <li><Link href="/catalogo?genero=hombre" className="hover:text-white">Hombre</Link></li>
+            <li><Link href="/catalogo?genero=mujer" className="hover:text-white">Mujer</Link></li>
+            <li><Link href="/catalogo?ofertas=1" className="hover:text-white">Ofertas</Link></li>
+            <li><Link href="/catalogo" className="hover:text-white">Todo el catálogo</Link></li>
+            <li><Link href="/guia-de-tallas" className="hover:text-white">Guía de tallas</Link></li>
+          </ul>
+          <p className="mt-5 text-[11px] font-extrabold uppercase tracking-[0.2em] text-white/40">Marcas</p>
+          <p className="mt-2 text-xs leading-relaxed text-white/60">{brands.join(' · ')} · y más</p>
+        </div>
+
+        <div>
+          <h4 className="mb-4 text-xs font-extrabold uppercase tracking-[0.2em] text-primary-light">Centro de ayuda</h4>
+          <ul className="space-y-2.5 text-sm text-white/75">
+            {HELP_PAGES.filter((p) => p.group === 'compra').map((p) => (
+              <li key={p.slug}>
+                <Link href={`/ayuda/${p.slug}`} className="hover:text-white">
+                  {p.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="mb-4 text-xs font-extrabold uppercase tracking-[0.2em] text-primary-light">{storeName}</h4>
+          <ul className="space-y-2.5 text-sm text-white/75">
+            {HELP_PAGES.filter((p) => p.group !== 'compra').map((p) => (
+              <li key={p.slug}>
+                <Link href={`/ayuda/${p.slug}`} className="hover:text-white">
+                  {p.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="mb-4 text-xs font-extrabold uppercase tracking-[0.2em] text-primary-light">Contacto</h4>
+          <p className="mb-5 text-sm text-white/75">{footer.contactText}</p>
+          <a
+            href={whatsappLinkTo(whatsappNumber, generalMessage(), whatsappCountryCode)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-whatsapp"
+          >
+            <WhatsAppIcon /> Escríbenos
+          </a>
+          <p className="mt-5 text-xs text-white/50">
+            📱{' '}
+            <a href={`tel:+${whatsappCountryCode}${whatsappNumber.replace(/\D/g, '').replace(/^0+/, '')}`} className="text-white/80 hover:text-primary-light">
+              +{whatsappCountryCode} {whatsappNumber.replace(/\D/g, '').replace(/^0+/, '').replace(/^(\d{3})(\d{3})(\d{4})$/, '$1 $2 $3')}
+            </a>
+          </p>
+          {footer.email && (
+            <p className="mt-1.5 text-xs text-white/50">
+              ✉️{' '}
+              <a href={`mailto:${footer.email}`} className="break-all text-white/80 hover:text-primary-light">
+                {footer.email}
+              </a>
+            </p>
+          )}
+          {footer.address && <p className="mt-1.5 text-xs text-white/50">📍 {footer.address}</p>}
+          <div className="mt-6">
+            <p className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.2em] text-white/40">Formas de pago</p>
+            <PaymentBadges dark />
+            <PaymentLogos size="sm" className="mt-3" />
+            <p className="mb-2 mt-5 text-[11px] font-extrabold uppercase tracking-[0.2em] text-white/40">Enviamos con</p>
+            <CourierLogo />
+          </div>
+        </div>
+      </div>
+
+      {footer.mapQuery?.trim() && (
+        <div className="border-t border-white/10">
+          <div className="container-page py-10">
+            <h4 className="mb-4 text-xs font-extrabold uppercase tracking-[0.2em] text-primary-light">📍 Encuéntranos</h4>
+            <div className="overflow-hidden rounded-2xl ring-1 ring-white/10">
+              <iframe
+                title={`Mapa de ${storeName}`}
+                src={`https://www.google.com/maps?q=${encodeURIComponent(footer.mapQuery.trim())}&output=embed`}
+                className="h-64 w-full border-0 sm:h-80"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
+              />
+            </div>
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(footer.mapQuery.trim())}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-block text-xs font-bold text-white/70 underline hover:text-primary-light"
+            >
+              Abrir en Google Maps
+            </a>
+          </div>
+        </div>
+      )}
+
+      <div className="border-t border-white/10 pb-28 pt-6 text-center sm:pb-24 text-xs text-white/40">
+        <div className="container-page flex flex-col items-center gap-3 text-center">
+          <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1">
+            <Link href="/ayuda/politica-de-privacidad" className="hover:text-white/80">Privacidad</Link>
+            <Link href="/ayuda/terminos-y-condiciones" className="hover:text-white/80">Términos</Link>
+            <Link href="/ayuda/rastrear-pedido" className="hover:text-white/80">Rastrear pedido</Link>
+            <Link href="/ayuda" className="hover:text-white/80">Ayuda</Link>
+          </nav>
+          <p>{footer.copyrightText || `© ${new Date().getFullYear()} ${storeName} · Colombia. Todos los derechos reservados.`}</p>
+          {/* Centrado y con espacio debajo para que el botón flotante de WhatsApp no lo tape */}
+          <Link
+            href="/admin/login"
+            className="rounded-full border border-white/10 px-4 py-1.5 text-white/35 transition-colors hover:border-white/30 hover:text-white/70"
+          >
+            Iniciar sesión
+          </Link>
+        </div>
+      </div>
+    </footer>
+  );
+}
