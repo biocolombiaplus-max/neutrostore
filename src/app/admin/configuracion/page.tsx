@@ -21,6 +21,7 @@ import type {
   SizeSystem,
 } from '@/lib/types';
 import { CLOTHING_SIZES, sortSizeList } from '@/lib/productTypes';
+import { ADMIN_EMAIL, changeAdminPassword } from '@/lib/auth';
 import { slugify } from '@/lib/utils';
 import { PaymentLogoChip, CourierLogo } from '@/components/brand/PaymentLogos';
 import PhotoBackupCard from '@/components/admin/PhotoBackupCard';
@@ -39,7 +40,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section data-config-section={title} className="scroll-mt-4 rounded-card bg-white p-4 shadow-soft sm:p-6">
+    <section data-config-section={title} className="scroll-mt-4 rounded-card transition-shadow duration-500 bg-white p-4 shadow-soft sm:p-6">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="font-heading text-lg font-bold text-ink">{title}</h2>
@@ -60,6 +61,15 @@ function SectionJump() {
   const [titles, setTitles] = useState<string[]>([]);
   useEffect(() => {
     setTitles(Array.from(document.querySelectorAll<HTMLElement>('[data-config-section]')).map((el) => el.dataset.configSection || ''));
+    // Enlaces "Editar" de la tienda: /admin/configuracion#sec=<sección> abre
+    // la página justo en esa sección y la resalta un momento.
+    const match = window.location.hash.match(/^#sec=(.+)$/);
+    if (!match) return;
+    const el = document.querySelector<HTMLElement>(`[data-config-section="${CSS.escape(decodeURIComponent(match[1]))}"]`);
+    if (!el) return;
+    setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+    el.classList.add('ring-4', 'ring-primary/50');
+    setTimeout(() => el.classList.remove('ring-4', 'ring-primary/50'), 2800);
   }, []);
   if (!titles.length) return null;
   return (
@@ -1649,6 +1659,8 @@ export default function ConfiguracionPage() {
         </Field>
       </Section>
 
+      <PasswordSection />
+
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-white/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_24px_rgba(0,0,0,0.06)] backdrop-blur sm:pl-60">
         <div className="mx-auto flex max-w-4xl items-center gap-3">
           <p className="hidden flex-1 text-xs text-muted sm:block">Los cambios se aplican en toda la tienda al guardar.</p>
@@ -1820,5 +1832,61 @@ function ProductTypesEditor({ types, onChange }: { types: ProductType[]; onChang
         + Agregar tipo de producto (gorras, jeans, bolsos…)
       </button>
     </div>
+  );
+}
+
+// Cambiar la contraseña del panel (la cuenta de Firebase del administrador).
+function PasswordSection() {
+  const [current, setCurrent] = useState('');
+  const [next, setNext] = useState('');
+  const [status, setStatus] = useState<'idle' | 'saving' | 'ok' | 'error'>('idle');
+  const [message, setMessage] = useState('');
+
+  async function submit() {
+    if (next.length < 6) {
+      setStatus('error');
+      setMessage('La nueva contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+    setStatus('saving');
+    try {
+      await changeAdminPassword(current, next);
+      setStatus('ok');
+      setMessage('Listo: desde ahora entras con la nueva contraseña.');
+      setCurrent('');
+      setNext('');
+    } catch (err) {
+      const code = (err as { code?: string })?.code ?? '';
+      setStatus('error');
+      setMessage(
+        code === 'auth/wrong-password' || code === 'auth/invalid-credential'
+          ? 'La contraseña actual no es correcta.'
+          : code === 'auth/weak-password'
+            ? 'Esa contraseña es muy débil.'
+            : 'No se pudo cambiar. Intenta de nuevo.',
+      );
+    }
+  }
+
+  return (
+    <Section
+      title="🔐 Contraseña del panel"
+      description={`Para entrar al panel solo se pide la contraseña (cuenta ${ADMIN_EMAIL}). Usa una que no sea fácil de adivinar: quien la tenga puede editar toda la tienda.`}
+    >
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="Contraseña actual">
+          <input type="password" value={current} onChange={(e) => setCurrent(e.target.value)} className={inputClass} autoComplete="current-password" />
+        </Field>
+        <Field label="Nueva contraseña (mínimo 6 caracteres)">
+          <input type="password" value={next} onChange={(e) => setNext(e.target.value)} className={inputClass} autoComplete="new-password" />
+        </Field>
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <button type="button" onClick={submit} disabled={status === 'saving' || !current || !next} className="btn-dark disabled:opacity-50">
+          {status === 'saving' ? 'Cambiando…' : 'Cambiar contraseña'}
+        </button>
+        {message && <p className={`text-sm font-semibold ${status === 'ok' ? 'text-whatsapp' : 'text-urgent'}`}>{message}</p>}
+      </div>
+    </Section>
   );
 }

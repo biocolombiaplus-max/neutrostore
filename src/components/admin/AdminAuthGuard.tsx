@@ -17,7 +17,10 @@ export default function AdminAuthGuard({ children }: { children: React.ReactNode
     const unsubscribe = watchAuthState(async (firebaseUser) => {
       if (!firebaseUser) {
         setStatus('unauthorized');
-        router.replace('/admin/login');
+        // Vuelve a la misma sección después de iniciar sesión (ej: los
+        // enlaces "Editar" de la tienda).
+        const back = window.location.pathname + window.location.search + window.location.hash;
+        router.replace(back.startsWith('/admin') && back !== '/admin' ? `/admin/login?next=${encodeURIComponent(back)}` : '/admin/login');
         return;
       }
       const admin = await isAdminUser(firebaseUser.uid);

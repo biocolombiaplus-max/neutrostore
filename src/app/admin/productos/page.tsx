@@ -3,18 +3,35 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { getAllProducts } from '@/lib/products';
 import type { Product } from '@/lib/types';
 import { formatPrice } from '@/lib/utils';
 
 export default function AdminProductsPage() {
+  const router = useRouter();
   const [products, setProducts] = useState<Product[] | null>(null);
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     getAllProducts()
       .then(setProducts)
       .catch(() => setProducts([]));
   }, []);
+
+  // "Editar este producto" desde la tienda llega con ?buscar=<slug>: si hay
+  // un solo producto con esa URL se abre directo su edición.
+  useEffect(() => {
+    if (!products) return;
+    const wanted = new URLSearchParams(window.location.search).get('buscar') ?? '';
+    if (!wanted) return;
+    const matches = products.filter((p) => p.slug === wanted);
+    if (matches.length === 1) router.replace(`/admin/productos/${matches[0].id}`);
+    else setQuery(wanted);
+  }, [products, router]);
+
+  const needle = query.trim().toLowerCase();
+  const shown = products?.filter((p) => !needle || `${p.title} ${p.brand} ${p.slug}`.toLowerCase().includes(needle)) ?? null;
 
   // Dos productos con la misma URL (slug) hacen que al abrir uno se muestre
   // el otro, al azar — se cuenta cuántas veces se repite cada slug para
@@ -39,6 +56,13 @@ export default function AdminProductsPage() {
         </div>
       </div>
 
+      <input
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="🔎 Buscar producto por nombre, marca o URL"
+        className="mb-4 w-full rounded-2xl border border-border bg-white px-4 py-3 text-sm shadow-soft focus:border-primary focus:outline-none"
+      />
+
       <div className="overflow-x-auto rounded-card bg-white shadow-soft">
         <table className="w-full min-w-[640px] text-left text-sm">
           <thead className="border-b border-border text-xs uppercase text-muted">
@@ -51,20 +75,20 @@ export default function AdminProductsPage() {
             </tr>
           </thead>
           <tbody>
-            {products === null ? (
+            {shown === null ? (
               <tr>
                 <td colSpan={5} className="p-6 text-center text-muted">
                   Cargando...
                 </td>
               </tr>
-            ) : products.length === 0 ? (
+            ) : shown.length === 0 ? (
               <tr>
                 <td colSpan={5} className="p-6 text-center text-muted">
-                  Todavía no tienes productos. ¡Agrega el primero!
+                  {needle ? 'No hay productos con esa búsqueda.' : 'Todavía no tienes productos. ¡Agrega el primero!'}
                 </td>
               </tr>
             ) : (
-              products.map((p) => {
+              shown.map((p) => {
                 const slugDuplicated = (slugCounts.get(p.slug) ?? 0) > 1;
                 return (
                 <tr key={p.id} className="border-b border-border/60 last:border-0">

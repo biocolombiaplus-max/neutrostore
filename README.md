@@ -136,18 +136,30 @@ Si prefieres no usar el CLI, puedes pegar el contenido de `firestore.rules`
 directamente en la consola de Firebase (Firestore Database → Reglas) y
 publicar desde ahí.
 
-## 5. Crear tu primer usuario administrador
+## 5. Crear la cuenta del administrador (entrar solo con contraseña)
 
-1. En Firebase Console → **Authentication → Users → Add user**, crea el
-   usuario **brooklynstore.ec@gmail.com** con la contraseña que quieras (es el
-   correo que ya viene escrito en `/admin/login`).
-2. Copia el **UID** de ese usuario (aparece en la lista de usuarios).
-3. En **Firestore Database**, crea manualmente la colección `admins` con un
-   documento cuyo **ID sea ese UID** (el contenido puede quedar vacío, `{}`).
-4. Listo: ahora ese correo puede entrar a `/admin/login`.
+El panel `/admin/login` pide **solo la contraseña**. Por dentro usa una cuenta
+fija de Firebase: **admin@neutrostore.co** (se puede cambiar con la variable
+`NEXT_PUBLIC_ADMIN_EMAIL`). Firebase valida la contraseña en sus servidores:
+la clave nunca queda escrita en el código de la página.
 
-> Cualquier usuario que quieras que administre la tienda necesita: (a) existir
-> en Authentication y (b) tener un documento en `admins/{su-uid}`.
+1. En Firebase Console → **Authentication → Sign-in method**, activa
+   **Correo electrónico/contraseña**.
+2. En **Authentication → Users → Add user**, crea el usuario
+   **admin@neutrostore.co** con la contraseña que usarás para entrar
+   (mínimo 6 caracteres, por ejemplo `123456`).
+3. Copia el **UID** de ese usuario (aparece en la lista de usuarios).
+4. En **Firestore Database**, crea la colección `admins` con un documento cuyo
+   **ID sea ese UID** (el contenido puede quedar vacío, `{}`).
+5. Listo: entra a `/admin/login`, escribe la contraseña y edita la tienda.
+
+> ⚠️ Una contraseña como `123456` es la primera que alguien probaría. Cámbiala
+> cuando quieras desde **/admin/configuracion → 🔐 Contraseña del panel**.
+
+Después de entrar una vez, en ese navegador la tienda muestra una pestaña
+**✏️ Editar** al lado izquierdo: abre el panel justo en la sección que
+quieres cambiar (portada, categorías, tipos de producto, logo, colores,
+pagos, envíos, pie de página, redes y mapa) o en el producto que estás viendo.
 
 ## 6. (Opcional) Cargar productos de ejemplo
 
@@ -226,7 +238,7 @@ vuelve a entrar.
    - `VAPID_PRIVATE_KEY` → la llave privada (nunca lleva `NEXT_PUBLIC_`
      porque solo se usa en el servidor, en `/api/send-push`)
    - `VAPID_SUBJECT` → `mailto:` seguido de un correo tuyo, por ejemplo
-     `mailto:contacto@calzadobrooklyn.com`
+     `mailto:admin@neutrostore.co`
 3. Vuelve a desplegar el sitio en Vercel para que tome las variables.
 4. Desde el celular de la administradora, entra a `/admin` (idealmente ya
    instalada como app, ver más abajo) y toca el botón **"🔔 Activar

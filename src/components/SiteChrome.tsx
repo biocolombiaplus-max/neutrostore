@@ -9,6 +9,7 @@ import FloatingBadge from './FloatingBadge';
 import CouponActivator from './CouponActivator';
 import MetaPixel from './MetaPixel';
 import VisitorTracker from './VisitorTracker';
+import AdminEditBar from './AdminEditBar';
 import { SettingsProvider } from '@/lib/settings-context';
 import type { SiteSettings } from '@/lib/types';
 
@@ -31,6 +32,7 @@ export default function SiteChrome({
       <CouponActivator />
       <MetaPixel />
       <VisitorTracker />
+      <AdminEditBar />
     </SettingsProvider>
   );
 }
