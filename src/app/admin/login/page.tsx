@@ -7,7 +7,8 @@ import { isFirebaseReady, loginAdminWithPassword, loginErrorMessage } from '@/li
 import { useSiteSettings } from '@/lib/settings-context';
 
 // Acceso al panel solo con la contraseña (el correo de la cuenta de
-// administrador es fijo, ver ADMIN_EMAIL en src/lib/auth.ts).
+// administrador es fijo, ver ADMIN_EMAIL en src/lib/auth-flag.ts). La primera
+// vez, la contraseña inicial (123456) crea la cuenta sola.
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();

@@ -23,7 +23,7 @@ export default function AdminAuthGuard({ children }: { children: React.ReactNode
         router.replace(back.startsWith('/admin') && back !== '/admin' ? `/admin/login?next=${encodeURIComponent(back)}` : '/admin/login');
         return;
       }
-      const admin = await isAdminUser(firebaseUser.uid);
+      const admin = await isAdminUser(firebaseUser.uid, firebaseUser.email);
       if (!admin) {
         await logoutAdmin();
         setStatus('unauthorized');

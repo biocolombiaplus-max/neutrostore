@@ -1,4 +1,5 @@
 import { FIREBASE_CONFIG } from './firebase-config';
+import { ADMIN_EMAIL } from './auth-flag';
 
 // Valida en el servidor que la petición viene de un administrador: token de
 // Firebase válido y usuario presente en la colección "admins".
@@ -12,8 +13,11 @@ export async function isAdminRequest(request: Request): Promise<boolean> {
       body: JSON.stringify({ idToken: token }),
     });
     if (!lookup.ok) return false;
-    const uid = ((await lookup.json()) as { users?: { localId: string }[] }).users?.[0]?.localId;
+    const account = ((await lookup.json()) as { users?: { localId: string; email?: string }[] }).users?.[0];
+    const uid = account?.localId;
     if (!uid) return false;
+    // La cuenta fija del panel siempre es administradora.
+    if (account?.email?.toLowerCase() === ADMIN_EMAIL) return true;
     const adminDoc = await fetch(
       `https://firestore.googleapis.com/v1/projects/${FIREBASE_CONFIG.projectId}/databases/(default)/documents/admins/${uid}`,
       { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' },

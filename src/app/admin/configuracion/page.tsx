@@ -1871,7 +1871,7 @@ function PasswordSection() {
   return (
     <Section
       title="🔐 Contraseña del panel"
-      description={`Para entrar al panel solo se pide la contraseña (cuenta ${ADMIN_EMAIL}). Usa una que no sea fácil de adivinar: quien la tenga puede editar toda la tienda.`}
+      description={`Para entrar al panel solo se pide la contraseña (cuenta interna ${ADMIN_EMAIL}). La inicial es 123456: quien la conozca puede editar toda la tienda, así que cámbiala cuando quieras.`}
     >
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Contraseña actual">

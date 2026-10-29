@@ -136,25 +136,24 @@ Si prefieres no usar el CLI, puedes pegar el contenido de `firestore.rules`
 directamente en la consola de Firebase (Firestore Database → Reglas) y
 publicar desde ahí.
 
-## 5. Crear la cuenta del administrador (entrar solo con contraseña)
+## 5. Entrar al panel: solo la contraseña `123456`
 
-El panel `/admin/login` pide **solo la contraseña**. Por dentro usa una cuenta
-fija de Firebase: **admin@neutrostore.co** (se puede cambiar con la variable
-`NEXT_PUBLIC_ADMIN_EMAIL`). Firebase valida la contraseña en sus servidores:
-la clave nunca queda escrita en el código de la página.
+El panel `/admin/login` pide **solo la contraseña**: escribe **`123456`** y
+entras. No hay que crear usuarios a mano: la primera vez que se escribe
+`123456`, el panel crea solo su cuenta de Firebase (`admin@neutrostore.co`)
+y esa cuenta queda como administradora (regla `isAdmin` de `firestore.rules`).
 
-1. En Firebase Console → **Authentication → Sign-in method**, activa
-   **Correo electrónico/contraseña**.
-2. En **Authentication → Users → Add user**, crea el usuario
-   **admin@neutrostore.co** con la contraseña que usarás para entrar
-   (mínimo 6 caracteres, por ejemplo `123456`).
-3. Copia el **UID** de ese usuario (aparece en la lista de usuarios).
-4. En **Firestore Database**, crea la colección `admins` con un documento cuyo
-   **ID sea ese UID** (el contenido puede quedar vacío, `{}`).
-5. Listo: entra a `/admin/login`, escribe la contraseña y edita la tienda.
+Lo único que hay que tener activo en Firebase (una sola vez):
 
-> ⚠️ Una contraseña como `123456` es la primera que alguien probaría. Cámbiala
-> cuando quieras desde **/admin/configuracion → 🔐 Contraseña del panel**.
+1. **Authentication → Sign-in method → Correo electrónico/contraseña:
+   Habilitar.**
+2. Las reglas de `firestore.rules` publicadas (paso 4).
+3. Las variables `NEXT_PUBLIC_FIREBASE_*` en Vercel (paso 7).
+
+> ⚠️ Cualquier persona que escriba `123456` en `/admin/login` puede editar
+> la tienda. Cuando quieras más seguridad, cámbiala en
+> **/admin/configuracion → 🔐 Contraseña del panel**. (La contraseña inicial
+> se puede cambiar también con la variable `NEXT_PUBLIC_ADMIN_INITIAL_PASSWORD`.)
 
 Después de entrar una vez, en ese navegador la tienda muestra una pestaña
 **✏️ Editar** al lado izquierdo: abre el panel justo en la sección que
