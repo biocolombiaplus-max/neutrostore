@@ -42,7 +42,7 @@ function buildStatusMessage(order: Order, storeName: string): string {
     case 'enviado':
       return buildShippedMessage(order, storeName);
     case 'entregado':
-      return `Hola ${firstName}! Vimos que tu pedido ${order.orderNumber} ya fue entregado. Esperamos que disfrutes tus zapatos nuevos. Si necesitas cambio de talla, recuerda escribirnos dentro de las 48 horas de recibido. Si tienes alguna duda, aquí estamos.`;
+      return `Hola ${firstName}! Vimos que tu pedido ${order.orderNumber} ya fue entregado. Esperamos que disfrutes tu compras nuevos. Si necesitas cambio de talla, recuerda escribirnos dentro de las 48 horas de recibido. Si tienes alguna duda, aquí estamos.`;
     case 'cancelado':
       return `Hola ${firstName}, tu pedido ${order.orderNumber} en ${storeName} fue cancelado. Si fue un error o quieres hacer un nuevo pedido, escríbenos y con gusto te ayudamos.`;
     default:
@@ -305,7 +305,7 @@ function OrderCard({
       {order.status === 'pendiente' && (
         <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl bg-gold-50 p-3 ring-1 ring-primary/30">
           <p className="min-w-0 flex-1 text-xs text-ink">
-            <strong>¿Se cerró la venta en WhatsApp?</strong> Márcala para que cuente en las ventas y en la ganancia de Juan Carlos.
+            <strong>¿Se cerró la venta en WhatsApp?</strong> Márcala para que cuente en las ventas.
           </p>
           <button
             type="button"

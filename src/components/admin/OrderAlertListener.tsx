@@ -123,17 +123,10 @@ export default function OrderAlertListener() {
   // nada para no parpadear el botón de "activar" un instante de más.
   if (!pushChecked) return null;
 
+  // Sin llaves de avisos push (opcional) no se muestra ninguna guía: con el
+  // panel abierto igual suena la caja registradora con cada pedido.
   const guide =
-    setup === 'no-keys'
-      ? {
-          title: 'Falta un paso en Vercel para activar los avisos',
-          steps: [
-            'Vercel → tu proyecto → Settings → Environment Variables.',
-            'Agrega NEXT_PUBLIC_VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY y VAPID_SUBJECT (te las pasamos listas).',
-            'Deployments → los 3 puntos del último → Redeploy.',
-          ],
-        }
-      : setup === 'ios-install'
+    setup === 'ios-install'
       ? {
           title: 'En iPhone, instala el panel como app para recibir avisos',
           steps: [

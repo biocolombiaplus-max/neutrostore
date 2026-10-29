@@ -315,7 +315,7 @@ export interface SiteSettings {
   metaDomainVerification: string;
   // Las estadísticas del panel cuentan pedidos desde esta fecha (ms).
   statsResetAt: number;
-  // Quincenas de Juan Carlos ya pagadas (ej: "2026-10-1", "2026-10-2").
+  // Heredado de la tienda base (ya no se usa en el panel).
   commissionPaid: string[];
   collectionsMenu: CollectionMenuItem[];
   brands: string[];

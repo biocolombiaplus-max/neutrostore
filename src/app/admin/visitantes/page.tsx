@@ -12,7 +12,7 @@ const ABANDON_MS = 15 * 60 * 1000;
 
 const STAGE: Record<VisitorStage, { label: string; cls: string }> = {
   visita: { label: 'Navegando', cls: 'bg-cream-alt text-muted' },
-  producto: { label: 'Vio zapatos', cls: 'bg-sky-100 text-sky-800' },
+  producto: { label: 'Vio productos', cls: 'bg-sky-100 text-sky-800' },
   carrito: { label: 'En el carrito', cls: 'bg-primary/20 text-ink' },
   checkout: { label: 'En el pago', cls: 'bg-orange-100 text-orange-800' },
   compra: { label: '✓ Compró', cls: 'bg-whatsapp/15 text-whatsapp' },
@@ -104,7 +104,7 @@ export default function VisitorsPage() {
   const reached = (stage: VisitorStage) => inRange.filter((v) => RANK[v.stage] >= RANK[stage] || (stage !== 'compra' && !!v.orderNumber)).length;
   const funnel: { stage: VisitorStage; label: string; count: number }[] = [
     { stage: 'visita', label: 'Visitantes', count: inRange.length },
-    { stage: 'producto', label: 'Vieron un zapato', count: reached('producto') },
+    { stage: 'producto', label: 'Vieron un producto', count: reached('producto') },
     { stage: 'carrito', label: 'Agregaron al carrito', count: reached('carrito') },
     { stage: 'checkout', label: 'Iniciaron el pago', count: reached('checkout') },
     { stage: 'compra', label: 'Compraron', count: inRange.filter((v) => v.stage === 'compra' || v.orderNumber).length },
@@ -267,7 +267,7 @@ export default function VisitorsPage() {
       {tab === 'abandonados' && live.length > 0 && (
         <p className="mt-3 flex items-center gap-2 rounded-xl bg-whatsapp/10 px-4 py-3 text-sm font-semibold text-ink ring-1 ring-whatsapp/30">
           <span className="h-2.5 w-2.5 shrink-0 animate-pulse rounded-full bg-whatsapp" />
-          {live.length === 1 ? '1 persona tiene' : `${live.length} personas tienen`} zapatos en el carrito o está pagando ahora mismo. Si se va sin
+          {live.length === 1 ? '1 persona tiene' : `${live.length} personas tienen`} productos en el carrito o está pagando ahora mismo. Si se va sin
           comprar, aparecerá aquí a los 15 minutos para que le escribas.
         </p>
       )}

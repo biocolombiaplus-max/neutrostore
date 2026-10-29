@@ -603,7 +603,7 @@ export default function ConfiguracionPage() {
 
       <Section
         title="📈 Píxel de Meta (Facebook / Instagram)"
-        description="Mide las ventas de tus anuncios y permite que Meta muestre a cada persona los zapatos que vio en tu web."
+        description="Mide las ventas de tus anuncios y permite que Meta muestre a cada persona los productos que vio en tu web."
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="ID del Píxel (conjunto de datos)">
@@ -934,7 +934,7 @@ export default function ConfiguracionPage() {
           />
         </Field>
         <ImageUploadField
-          label="Foto del zapato (mejor en PNG sin fondo, se muestra flotando)"
+          label="Foto de la marca estrella (PNG sin fondo flota; una foto normal se muestra enmarcada)"
           value={settings.featuredBrand.image}
           folder="site"
           onChange={(url) => updateFeatured('image', url)}
@@ -1399,7 +1399,7 @@ export default function ConfiguracionPage() {
 
       <Section
         title="📸 Entregas reales (prueba social)"
-        description="Fotos reales de tus clientes con sus zapatos, paquetes listos o guías de Servientrega. Es lo que más confianza da a quien no conoce la tienda. Se muestran en la portada y en cada zapato apenas subas la primera."
+        description="Fotos reales de tus clientes con sus compras, paquetes listos o guías de Servientrega. Es lo que más confianza da a quien no conoce la tienda. Se muestran en la portada y en cada zapato apenas subas la primera."
       >
         <label className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink">
           <input
