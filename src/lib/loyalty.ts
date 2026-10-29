@@ -40,7 +40,7 @@ export function generateLoyaltyCode(customerName: string): string {
     .replace(/[^A-Za-z]/g, '')
     .toUpperCase()
     .slice(0, 6);
-  return `GRACIAS-${name || 'BS'}${randomPart(5)}`;
+  return `GRACIAS-${name || 'NS'}${randomPart(5)}`;
 }
 
 function toRecord(id: string, data: Record<string, unknown>): LoyaltyRecord {

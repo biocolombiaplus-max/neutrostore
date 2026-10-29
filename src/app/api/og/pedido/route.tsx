@@ -42,7 +42,7 @@ export async function GET(request: Request) {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={main.photo} width={560} height={560} style={{ objectFit: 'contain' }} alt="" />
           ) : (
-            <div style={{ display: 'flex', fontSize: 160, fontWeight: 700, color: GOLD }}>BS</div>
+            <div style={{ display: 'flex', fontSize: 160, fontWeight: 700, color: GOLD }}>NS</div>
           )}
           {thumbs.length > 0 && (
             <div style={{ position: 'absolute', left: 24, bottom: 24, display: 'flex', gap: 12 }}>

@@ -33,6 +33,7 @@ export default function NuevoPedidoPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('transferencia');
   const [shippingOverride, setShippingOverride] = useState<string>('');
   const [saving, setSaving] = useState(false);
+  const [metaAd, setMetaAd] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -117,6 +118,7 @@ export default function NuevoPedidoPage() {
           },
           paymentMethod,
           status: 'confirmado',
+          ...(metaAd ? { tracking: { source: 'Meta Ads', metaAd: true } } : {}),
         },
         { requireDatabase: true },
       );
@@ -379,6 +381,17 @@ export default function NuevoPedidoPage() {
             </p>
           )}
         </div>
+
+        <label className="flex cursor-pointer items-start gap-3 rounded-card bg-[#1877F2]/[0.06] p-4 ring-1 ring-[#1877F2]/25">
+          <input type="checkbox" checked={metaAd} onChange={(e) => setMetaAd(e.target.checked)} className="mt-0.5 h-5 w-5 accent-[#1877F2]" />
+          <span className="text-sm text-ink">
+            <strong>📣 Esta venta viene de una campaña de Meta Ads</strong>
+            <span className="block text-xs text-muted">
+              Ej: el cliente escribió desde un anuncio de Facebook o Instagram (en WhatsApp Business el chat dice “desde un anuncio”). Cuenta para la
+              comisión de la agencia.
+            </span>
+          </span>
+        </label>
 
         {error && <p className="rounded-lg bg-urgent/10 p-3 text-sm text-urgent">{error}</p>}
 

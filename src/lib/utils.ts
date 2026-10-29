@@ -260,7 +260,7 @@ export function generateOrderNumber(): string {
     date.getDate(),
   ).padStart(2, '0')}`;
   const random = Math.floor(1000 + Math.random() * 9000);
-  return `BS-${stamp}-${random}`;
+  return `NS-${stamp}-${random}`;
 }
 
 export function classNames(...values: Array<string | false | null | undefined>): string {

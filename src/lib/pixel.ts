@@ -2,7 +2,7 @@
 // 1) el Píxel (navegador) y 2) la API de conversiones (servidor, /api/meta-capi).
 // Meta junta ambos (deduplicación) y así no se pierden las ventas de quien
 // usa iPhone o bloqueadores. Nunca rompe la tienda si algo falla.
-import { isStaffDevice, visitorContact, visitorId } from './visitor';
+import { adAttribution, isStaffDevice, visitorContact, visitorId } from './visitor';
 
 type FbqParams = Record<string, unknown>;
 type Fbq = (command: 'track' | 'trackCustom', event: string, params?: FbqParams, options?: { eventID?: string }) => void;
@@ -54,9 +54,11 @@ function sendToServer(event: string, params: FbqParams | undefined, eventId: str
 }
 
 // Datos para atribuir a Meta una venta que se cierra después (por WhatsApp).
-export function adTracking(): { vid: string; fbp: string; fbc: string; ua: string } {
-  if (typeof window === 'undefined') return { vid: '', fbp: '', fbc: '', ua: '' };
-  return { vid: visitorId(), fbp: cookie('_fbp'), fbc: clickId(), ua: navigator.userAgent.slice(0, 300) };
+// También guarda de dónde llegó el cliente y si vino de una campaña de Meta
+// Ads (para la comisión de la agencia).
+export function adTracking(): { vid: string; fbp: string; fbc: string; ua: string; source: string; campaign: string; metaAd: boolean } {
+  if (typeof window === 'undefined') return { vid: '', fbp: '', fbc: '', ua: '', source: '', campaign: '', metaAd: false };
+  return { vid: visitorId(), fbp: cookie('_fbp'), fbc: clickId(), ua: navigator.userAgent.slice(0, 300), ...adAttribution() };
 }
 
 export function trackPixel(event: string, params?: FbqParams, eventID?: string): void {

@@ -6,6 +6,8 @@ import type { SiteSettings } from './types';
 
 export const DEFAULT_SETTINGS: SiteSettings = {
   storeName: process.env.NEXT_PUBLIC_STORE_NAME || 'Neutro Store',
+  // Biomarketing gana $5.000 por cada venta de sus campañas de Meta Ads.
+  commission: { enabled: true, name: 'Biomarketing', amount: 5000, per: 'venta', onlyMetaAds: true },
   // Tipos de producto de la tienda multimarca. Desde el panel se agregan más
   // (gorras, bolsos, jeans...) con sus propias tallas.
   productTypes: [
@@ -366,6 +368,7 @@ export function mergeWithDefaults(data: Partial<SiteSettings> | undefined): Site
       ...data.featuredBrand,
       bullets: data.featuredBrand?.bullets?.length ? data.featuredBrand.bullets : DEFAULT_SETTINGS.featuredBrand.bullets,
     },
+    commission: { ...DEFAULT_SETTINGS.commission, ...data.commission },
     productTypes: data.productTypes?.some((t) => t.value && t.label) ? data.productTypes.filter((t) => t.value && t.label) : DEFAULT_SETTINGS.productTypes,
     announcementMessages: data.announcementMessages?.length ? data.announcementMessages : DEFAULT_SETTINGS.announcementMessages,
     categoryTiles: {

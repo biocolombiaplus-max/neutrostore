@@ -136,11 +136,11 @@ function RastrearPedido() {
 
       <div className="grid gap-5 lg:grid-cols-2">
         <Block title="1. Consulta tu pedido">
-          <p>Escribe tu número de pedido (empieza con BS-) y te decimos por WhatsApp en qué va tu compra.</p>
+          <p>Escribe tu número de pedido (empieza con NS-) y te decimos por WhatsApp en qué va tu compra.</p>
           <input
             value={orderNumber}
             onChange={(e) => setOrderNumber(e.target.value)}
-            placeholder="Ej: BS-20260926-1234"
+            placeholder="Ej: NS-20261029-1234"
             className="input uppercase"
           />
           <WaButton message={trackMessage} label="Consultar estado" className="w-full" />

@@ -24,7 +24,7 @@ export default function SafeImage({ alt, className, hideOnError, ...props }: Ima
     if (hideOnError) return null;
     return (
       <span className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-cream-alt to-gold-100">
-        <span className="font-display text-4xl font-bold text-primary/50">BS</span>
+        <span className="font-display text-4xl font-bold text-primary/50">NS</span>
       </span>
     );
   }

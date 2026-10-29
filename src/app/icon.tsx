@@ -6,7 +6,7 @@ export const contentType = 'image/png';
 
 export default async function Icon() {
   const { storeName, logoUrl, primary, cream } = await getBranding();
-  const initial = storeName.trim().split(/\s+/).map((w) => w.charAt(0)).join('').slice(0, 2).toUpperCase() || 'BS';
+  const initial = storeName.trim().split(/\s+/).map((w) => w.charAt(0)).join('').slice(0, 2).toUpperCase() || 'NS';
 
   return new ImageResponse(
     (

@@ -188,6 +188,39 @@ function raise(p: Profile, stage: VisitorStage) {
   }
 }
 
+// Atribución a Meta Ads: si el cliente llegó por un anuncio (fbclid o utm de
+// Meta pagado), se recuerda 30 días en este navegador. Así, aunque vuelva
+// después directo y compre, la venta cuenta como de la campaña (comisión
+// de la agencia y reporte en el panel).
+const META_AD_KEY = 'ns-meta-ad';
+const META_AD_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+
+function rememberMetaAd(campaign: string) {
+  try {
+    window.localStorage.setItem(META_AD_KEY, JSON.stringify({ at: Date.now(), campaign }));
+  } catch {
+    /* sin almacenamiento */
+  }
+}
+
+// Origen de la venta para guardarlo en el pedido.
+export function adAttribution(): { source: string; campaign: string; metaAd: boolean } {
+  if (typeof window === 'undefined') return { source: '', campaign: '', metaAd: false };
+  const p = loadProfile();
+  let metaAd = false;
+  let campaign = p.campaign;
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(META_AD_KEY) || 'null') as { at: number; campaign: string } | null;
+    if (saved && Date.now() - saved.at <= META_AD_WINDOW_MS) {
+      metaAd = true;
+      campaign = campaign || saved.campaign;
+    }
+  } catch {
+    /* sin almacenamiento */
+  }
+  return { source: p.source || 'Directo', campaign: campaign.slice(0, 120), metaAd };
+}
+
 // Cada página vista. La primera de cada visita registra el origen.
 export function trackPageview() {
   update(
@@ -201,6 +234,17 @@ export function trackPageview() {
       }
       if (newSession) {
         const { source, campaign } = detectSource();
+        const fbclid = new URLSearchParams(window.location.search).get('fbclid');
+        if (source === 'Meta Ads' || fbclid) rememberMetaAd(campaign);
+        // Identificador del clic en el formato de Meta (el mismo que usa
+        // pixel.ts), para reportarle la venta aunque el píxel no haya cargado.
+        if (fbclid) {
+          try {
+            window.localStorage.setItem('bs-fbc', `fb.1.${Date.now()}.${fbclid}`);
+          } catch {
+            /* sin almacenamiento */
+          }
+        }
         p.visits += 1;
         p.source = source;
         p.campaign = campaign;

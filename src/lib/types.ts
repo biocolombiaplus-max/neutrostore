@@ -175,7 +175,18 @@ export interface Order {
   // venta se cierra en el chat y luego se marca en el panel).
   channel?: 'whatsapp';
   // Datos del anuncio que trajo al cliente (para avisar la venta a Meta al cerrarla).
-  tracking?: { vid?: string; fbp?: string; fbc?: string; ua?: string };
+  tracking?: {
+    vid?: string;
+    fbp?: string;
+    fbc?: string;
+    ua?: string;
+    // Origen de la visita (Meta Ads, Instagram, Google, Directo...) y campaña.
+    source?: string;
+    campaign?: string;
+    // Venta de una campaña de Meta Ads (cuenta para la comisión de la agencia).
+    // Se marca sola desde la web y se puede corregir en el panel.
+    metaAd?: boolean;
+  };
   createdAt: number;
 }
 
@@ -302,8 +313,20 @@ export interface PaymentLogo {
   enabled: boolean;
 }
 
+// Comisión de la agencia (Biomarketing) por las ventas de sus campañas.
+export interface CommissionSettings {
+  enabled: boolean;
+  name: string;
+  amount: number;
+  // "venta": un valor por pedido confirmado; "unidad": por cada unidad vendida.
+  per: 'venta' | 'unidad';
+  // Solo cuentan los pedidos marcados como venta de Meta Ads.
+  onlyMetaAds: boolean;
+}
+
 export interface SiteSettings {
   storeName: string;
+  commission: CommissionSettings;
   productTypes: ProductType[];
   logoUrl: string;
   logoHeight: number;
@@ -315,7 +338,7 @@ export interface SiteSettings {
   metaDomainVerification: string;
   // Las estadísticas del panel cuentan pedidos desde esta fecha (ms).
   statsResetAt: number;
-  // Heredado de la tienda base (ya no se usa en el panel).
+  // Quincenas de comisión de la agencia ya pagadas (ej: "2026-10-1").
   commissionPaid: string[];
   collectionsMenu: CollectionMenuItem[];
   brands: string[];

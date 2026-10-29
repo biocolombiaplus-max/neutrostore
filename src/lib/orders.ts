@@ -83,6 +83,12 @@ export async function updateOrderStatus(id: string, status: OrderStatus): Promis
   await updateDoc(doc(db, COLLECTION, id), { status });
 }
 
+// Marca o desmarca un pedido como venta de una campaña de Meta Ads (cuenta
+// para la comisión de la agencia).
+export async function updateOrderMetaAd(id: string, metaAd: boolean): Promise<void> {
+  await updateDoc(doc(db, COLLECTION, id), { 'tracking.metaAd': metaAd });
+}
+
 // Datos del cliente que llegan por el chat (pedidos directos a WhatsApp).
 export async function updateOrderContact(id: string, contact: { name: string; phone: string }): Promise<void> {
   await updateDoc(doc(db, COLLECTION, id), { 'customer.name': contact.name, 'customer.phone': contact.phone });

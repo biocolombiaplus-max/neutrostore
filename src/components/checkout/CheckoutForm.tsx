@@ -8,7 +8,7 @@ import { codUnitPrice, computeOrderTotals } from '@/lib/shipping';
 import { clearCoupon, couponPercentFor, getActiveCoupon, redeemAnyCouponCode, type WonCoupon } from '@/lib/coupon';
 import { useSiteSettings } from '@/lib/settings-context';
 import { buildOrderWhatsAppMessage, classNames, formatPrice, generateOrderNumber, whatsappLinkTo } from '@/lib/utils';
-import { trackPixel } from '@/lib/pixel';
+import { adTracking, trackPixel } from '@/lib/pixel';
 import { trackVisitorCheckoutItems, trackVisitorContact, trackVisitorPurchase } from '@/lib/visitor';
 import type { CartItem, OrderCustomer, PaymentMethod } from '@/lib/types';
 
@@ -213,6 +213,8 @@ export default function CheckoutForm({
         status: 'pendiente' as const,
         couponCode: couponBlocked ? undefined : coupon?.code,
         channel: 'whatsapp' as const,
+        // Anuncio que trajo al cliente (venta para Meta y comisión de la agencia).
+        tracking: adTracking(),
       };
 
       const message = buildOrderWhatsAppMessage({ ...orderData, orderNumber }, { request: true });

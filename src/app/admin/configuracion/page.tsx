@@ -602,6 +602,58 @@ export default function ConfiguracionPage() {
       </Section>
 
       <Section
+        title="💼 Comisión de la agencia"
+        description="Lo que gana la agencia (Biomarketing) por las ventas de sus campañas. Se ve en el Panel por quincenas, con historial y botón “Marcar pagada”. Las ventas de Meta Ads se marcan solas cuando el cliente llega desde un anuncio, y en Pedidos se pueden marcar o corregir a mano (📣 Meta Ads)."
+      >
+        <label className="flex items-center gap-2 text-sm font-semibold text-ink">
+          <input
+            type="checkbox"
+            checked={settings.commission.enabled}
+            onChange={(e) => update('commission', { ...settings.commission, enabled: e.target.checked })}
+          />
+          Mostrar la comisión en el Panel
+        </label>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Field label="Nombre de la agencia">
+            <input
+              value={settings.commission.name}
+              onChange={(e) => update('commission', { ...settings.commission, name: e.target.value })}
+              className={inputClass}
+              placeholder="Biomarketing"
+            />
+          </Field>
+          <Field label="Valor (COP)">
+            <input
+              type="number"
+              min={0}
+              step="500"
+              value={settings.commission.amount}
+              onChange={(e) => update('commission', { ...settings.commission, amount: Number(e.target.value) || 0 })}
+              className={inputClass}
+            />
+          </Field>
+          <Field label="Se paga por">
+            <select
+              value={settings.commission.per}
+              onChange={(e) => update('commission', { ...settings.commission, per: e.target.value === 'unidad' ? 'unidad' : 'venta' })}
+              className={inputClass}
+            >
+              <option value="venta">Cada venta (pedido confirmado)</option>
+              <option value="unidad">Cada unidad vendida (par, camiseta…)</option>
+            </select>
+          </Field>
+        </div>
+        <label className="flex items-center gap-2 text-sm font-semibold text-ink">
+          <input
+            type="checkbox"
+            checked={settings.commission.onlyMetaAds}
+            onChange={(e) => update('commission', { ...settings.commission, onlyMetaAds: e.target.checked })}
+          />
+          Contar solo las ventas que vienen de las campañas de Meta Ads
+        </label>
+      </Section>
+
+      <Section
         title="📈 Píxel de Meta (Facebook / Instagram)"
         description="Mide las ventas de tus anuncios y permite que Meta muestre a cada persona los productos que vio en tu web."
       >

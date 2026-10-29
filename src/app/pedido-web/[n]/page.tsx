@@ -57,7 +57,7 @@ export default async function PedidoWebPage({ params, searchParams }: Props) {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={photoSrc(item.image)} alt={item.title} className="aspect-square w-full object-contain" />
                 ) : (
-                  <div className="flex aspect-square items-center justify-center font-display text-6xl text-primary/50">BS</div>
+                  <div className="flex aspect-square items-center justify-center font-display text-6xl text-primary/50">NS</div>
                 )}
               </div>
               <div className="space-y-3 p-5">

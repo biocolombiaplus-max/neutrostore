@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { getAllOrders, updateOrderStatus, updateOrderContact, reportPurchaseToMeta, updateOrderShipping, updateOrderGuide, deleteOrder } from '@/lib/orders';
+import { getAllOrders, updateOrderStatus, updateOrderContact, updateOrderMetaAd, reportPurchaseToMeta, updateOrderShipping, updateOrderGuide, deleteOrder } from '@/lib/orders';
 import { getSiteSettings } from '@/lib/settings';
 import { CARRIERS, type Order, type OrderStatus, type Carrier, type BankAccount } from '@/lib/types';
 import { buildPaymentDataMessage, buildShippedMessage, formatPrice, guidePageUrl, orderPhotoUrl, whatsappLinkTo } from '@/lib/utils';
@@ -50,12 +50,13 @@ function buildStatusMessage(order: Order, storeName: string): string {
   }
 }
 
-type Filter = 'todos' | 'por_cerrar' | 'cerradas' | 'no_compro';
+type Filter = 'todos' | 'por_cerrar' | 'cerradas' | 'no_compro' | 'meta';
 
 const FILTERS: { value: Filter; label: string; match: (o: Order) => boolean }[] = [
   { value: 'por_cerrar', label: '💬 Por cerrar', match: (o) => o.status === 'pendiente' },
   { value: 'cerradas', label: '✅ Ventas cerradas', match: (o) => ['confirmado', 'enviado', 'entregado'].includes(o.status) },
   { value: 'no_compro', label: '✕ No compró', match: (o) => o.status === 'cancelado' },
+  { value: 'meta', label: '📣 Meta Ads', match: (o) => !!o.tracking?.metaAd },
   { value: 'todos', label: 'Todos', match: () => true },
 ];
 
@@ -167,6 +168,10 @@ export default function AdminOrdersPage() {
               onShippingSave={(carrier, trackingNumber) => handleShippingSave(order, carrier, trackingNumber)}
               onGuideChange={(guide) => handleGuideChange(order, guide)}
               onDelete={() => handleDeleteOrder(order)}
+              onMetaAdChange={async (value) => {
+                await updateOrderMetaAd(order.id, value);
+                setOrders((prev) => (prev ? prev.map((o) => (o.id === order.id ? { ...o, tracking: { ...o.tracking, metaAd: value } } : o)) : prev));
+              }}
             />
           ))
         )}
@@ -185,6 +190,7 @@ function OrderCard({
   onShippingSave,
   onGuideChange,
   onDelete,
+  onMetaAdChange,
 }: {
   order: Order;
   storeName: string;
@@ -195,7 +201,9 @@ function OrderCard({
   onShippingSave: (carrier: Carrier | '', trackingNumber: string) => void;
   onGuideChange: (guide: { url: string; type: 'image' | 'pdf' } | null) => Promise<void>;
   onDelete: () => void;
+  onMetaAdChange: (value: boolean) => Promise<void>;
 }) {
+  const [metaSaving, setMetaSaving] = useState(false);
   const [guideUploading, setGuideUploading] = useState(false);
   const [guideError, setGuideError] = useState('');
   const [loyaltyBusy, setLoyaltyBusy] = useState(false);
@@ -277,7 +285,33 @@ function OrderCard({
                 💬 Pedido por WhatsApp
               </span>
             )}
+            <button
+              type="button"
+              disabled={metaSaving}
+              title={order.tracking?.metaAd ? 'Venta de una campaña de Meta Ads (toca para quitar)' : '¿Llegó por un anuncio de Meta? Toca para marcarla'}
+              onClick={async () => {
+                setMetaSaving(true);
+                try {
+                  await onMetaAdChange(!order.tracking?.metaAd);
+                } catch {
+                  alert('No se pudo guardar. Intenta de nuevo.');
+                } finally {
+                  setMetaSaving(false);
+                }
+              }}
+              className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider transition-colors disabled:opacity-60 ${
+                order.tracking?.metaAd ? 'bg-[#1877F2]/15 text-[#1877F2]' : 'bg-cream-alt text-muted ring-1 ring-border hover:text-ink'
+              }`}
+            >
+              {order.tracking?.metaAd ? '📣 Meta Ads' : '+ Marcar Meta Ads'}
+            </button>
           </p>
+          {order.tracking?.source && (
+            <p className="text-[11px] text-muted">
+              Llegó por: <strong className="text-ink">{order.tracking.source}</strong>
+              {order.tracking.campaign ? ` · ${order.tracking.campaign}` : ''}
+            </p>
+          )}
           <p className="text-xs text-muted">{new Date(order.createdAt).toLocaleString('es-CO')}</p>
         </div>
         <div className="flex flex-col items-end gap-1.5">

@@ -188,6 +188,27 @@ Esto sube los 15 modelos del catálogo de demostración — entra a
 Cada vez que hagas `git push` a la rama conectada, Vercel vuelve a desplegar
 automáticamente.
 
+## Comisión de la agencia (Biomarketing) por ventas de Meta Ads
+
+Biomarketing gana **$5.000 por cada venta confirmada** que viene de sus
+campañas de Meta Ads. El panel (`/admin`) muestra la ganancia de la quincena
+(del 1 al 15 y del 16 a fin de mes), lo que está por confirmar, el historial
+y el botón **Marcar pagada**. Nombre, valor, si se paga por venta o por
+unidad y si cuentan solo las ventas de Meta se editan en
+**Configuración → 💼 Comisión de la agencia**.
+
+Cómo se sabe que una venta vino de Meta Ads:
+
+- **Automático:** si el cliente entra desde un anuncio (Meta agrega `fbclid`
+  al link, o usas `utm_source=fb|ig` con `utm_medium=paid`), la tienda lo
+  recuerda **30 días** en ese celular y el pedido queda marcado
+  **📣 Meta Ads** con su campaña. Recomendado en los anuncios:
+  `?utm_source={{site_source_name}}&utm_medium=paid&utm_campaign={{campaign.name}}`
+- **A mano:** en **Pedidos** cada pedido tiene el botón **📣 Meta Ads** para
+  marcarlo o quitarlo (por ejemplo, ventas de anuncios que abren WhatsApp
+  directo), y el pedido manual tiene la casilla “Esta venta viene de una
+  campaña de Meta Ads”. El filtro **📣 Meta Ads** muestra solo esas ventas.
+
 ## Notificación por correo de cada pedido nuevo
 
 Igual que la notificación automática de Shopify, puedes recibir un correo

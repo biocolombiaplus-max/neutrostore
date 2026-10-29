@@ -6,6 +6,7 @@ import { getAllProducts } from '@/lib/products';
 import { getAllOrders } from '@/lib/orders';
 import { getSiteSettings, updateSiteSettingsFields } from '@/lib/settings';
 import { formatPrice } from '@/lib/utils';
+import CommissionBar, { commissionOrders } from '@/components/admin/CommissionBar';
 import type { Order, Product, SiteSettings } from '@/lib/types';
 
 // Pedidos que cuentan como venta (los pendientes aún no han pagado).
@@ -16,6 +17,7 @@ export default function AdminDashboard() {
   const [allOrders, setAllOrders] = useState<Order[] | null>(null);
   const [since, setSince] = useState<number | null>(null);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
+  const [paid, setPaid] = useState<string[]>([]);
   const [resetting, setResetting] = useState(false);
 
   useEffect(() => {
@@ -29,6 +31,7 @@ export default function AdminDashboard() {
       setAllOrders(o);
       setSince(s?.statsResetAt ?? 0);
       setSettings(s);
+      setPaid(s?.commissionPaid ?? []);
     })();
   }, []);
 
@@ -48,18 +51,29 @@ export default function AdminDashboard() {
   ];
 
   async function resetStats() {
-    if (!window.confirm('¿Reiniciar el panel en cero desde ahora?\n\nLos pedidos NO se borran: siguen en la sección Pedidos. Solo dejan de contar en estas cifras.')) return;
+    if (!window.confirm('¿Reiniciar el panel en cero desde ahora?\n\nLos pedidos NO se borran: siguen en la sección Pedidos. Solo dejan de contar en estas cifras y en la comisión de la agencia.')) return;
     setResetting(true);
     const now = Date.now();
     try {
-      await updateSiteSettingsFields({ statsResetAt: now });
+      await updateSiteSettingsFields({ statsResetAt: now, commissionPaid: [] });
       setSince(now);
+      setPaid([]);
     } catch {
       alert('No se pudo reiniciar. Intenta de nuevo.');
     } finally {
       setResetting(false);
     }
   }
+
+  async function togglePaid(key: string, value: boolean) {
+    const next = value ? Array.from(new Set([...paid, key])) : paid.filter((k) => k !== key);
+    await updateSiteSettingsFields({ commissionPaid: next });
+    setPaid(next);
+  }
+
+  // Ventas confirmadas que llegaron por las campañas de Meta Ads.
+  const metaSold = sold.filter((o) => !!o.tracking?.metaAd);
+  const metaRevenue = metaSold.reduce((sum, o) => sum + o.total, 0);
 
   return (
     <div>
@@ -90,6 +104,17 @@ export default function AdminDashboard() {
           </div>
         ))}
       </div>
+
+      {orders && metaSold.length > 0 && (
+        <p className="mt-4 rounded-card bg-[#1877F2]/[0.06] px-5 py-3 text-sm text-ink ring-1 ring-[#1877F2]/20">
+          📣 <strong>{metaSold.length}</strong> {metaSold.length === 1 ? 'venta confirmada viene' : 'ventas confirmadas vienen'} de las campañas de
+          Meta Ads · <strong>{formatPrice(metaRevenue)}</strong> ({revenue ? Math.round((metaRevenue / revenue) * 100) : 0}% de las ventas)
+        </p>
+      )}
+
+      {settings && since !== null && (
+        <CommissionBar orders={orders && commissionOrders(orders, settings.commission)} since={since} paid={paid} config={settings.commission} onTogglePaid={togglePaid} />
+      )}
 
       {settings && products && <SetupChecklist settings={settings} productCount={products.length} />}
 
