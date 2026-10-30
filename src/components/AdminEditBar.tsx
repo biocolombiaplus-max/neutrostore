@@ -88,6 +88,9 @@ export default function AdminEditBar() {
               <Link href="/admin/pedidos" className="rounded-2xl bg-white/10 px-3 py-3 text-center text-xs font-extrabold hover:bg-white/15">
                 📦 Pedidos
               </Link>
+              <Link href="/admin/colecciones" className="col-span-2 rounded-2xl bg-white/10 px-3 py-3 text-center text-xs font-extrabold hover:bg-white/15">
+                🗂️ Colecciones
+              </Link>
             </div>
 
             <p className="mt-6 text-[10px] font-extrabold uppercase tracking-[0.25em] text-white/40">{onHome ? 'Secciones de esta página' : 'Secciones de la tienda'}</p>

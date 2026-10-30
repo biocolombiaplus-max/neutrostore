@@ -9,6 +9,7 @@ import { brandHref, brandTagline, isStarBrand } from '@/lib/brand';
 import { formatPrice, whatsappLinkTo } from '@/lib/utils';
 import { adviceMessage } from '@/lib/wa-messages';
 import SafeImage from './SafeImage';
+import { collectionHref } from '@/lib/storeCollections';
 import ShoeStage from './brand/ShoeStage';
 import StarTag from './brand/StarTag';
 import { ChevronIcon, CloseIcon, SearchIcon, WhatsAppIcon } from './icons';
@@ -19,7 +20,7 @@ import { ChevronIcon, CloseIcon, SearchIcon, WhatsAppIcon } from './icons';
 // desenfoque de fondo) un elemento "fixed" queda atrapado y no se ve.
 export default function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
   const router = useRouter();
-  const { brands, collectionsMenu, featuredBrand, payments, shipping, whatsappNumber, whatsappCountryCode, storeName, logoUrl, categoryTiles, productTypes } =
+  const { brands, collectionsMenu, featuredBrand, payments, shipping, whatsappNumber, whatsappCountryCode, storeName, logoUrl, categoryTiles, productTypes, storeCollections } =
     useSiteSettings();
   // Las mismas tarjetas (foto, nombre y link) de "Compra por categoría" de la portada.
   const categories = categoryTiles.tiles.filter((t) => t.label.trim());
@@ -175,10 +176,32 @@ export default function MobileMenu({ open, onClose }: { open: boolean; onClose: 
             </Link>
           </div>
 
+          {storeCollections.length > 0 && (
+            <>
+              <p className="mt-7 text-[11px] font-extrabold uppercase tracking-[0.22em] text-muted">Colecciones</p>
+              <div className="mt-3 space-y-2">
+                {storeCollections.map((c) => (
+                  <Link
+                    key={c.slug}
+                    href={collectionHref(c)}
+                    onClick={onClose}
+                    className="flex items-center gap-3 rounded-2xl bg-cream-alt/70 p-2 pr-4 text-sm font-extrabold text-ink"
+                  >
+                    <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-ink">
+                      {c.image && <SafeImage src={c.image} alt="" fill sizes="48px" className="object-cover" />}
+                    </span>
+                    <span className="flex-1">{c.name}</span>
+                    <ChevronIcon dir="right" />
+                  </Link>
+                ))}
+              </div>
+            </>
+          )}
+
           {/* Estilos */}
           {collectionsMenu.length > 0 && (
             <>
-              <p className="mt-7 text-[11px] font-extrabold uppercase tracking-[0.22em] text-muted">Colecciones</p>
+              <p className="mt-7 text-[11px] font-extrabold uppercase tracking-[0.22em] text-muted">Estilos</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {collectionsMenu.map((c) => (
                   <Link

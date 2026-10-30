@@ -96,7 +96,7 @@ function CatalogoContent({ initialProducts }: { initialProducts?: Product[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { collectionsMenu, featuredBrand, productTypes } = useSiteSettings();
+  const { collectionsMenu, featuredBrand, productTypes, storeCollections } = useSiteSettings();
   const [products, setProducts] = useState<Product[] | null>(initialProducts?.length ? initialProducts : null);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
@@ -105,6 +105,8 @@ function CatalogoContent({ initialProducts }: { initialProducts?: Product[] }) {
   const gender = searchParams.get('genero') ?? '';
   const tipo = searchParams.get('tipo') ?? '';
   const activeType = productTypes.find((t) => t.value === tipo);
+  const coleccion = searchParams.get('coleccion') ?? '';
+  const activeCollection = storeCollections.find((c) => c.slug === coleccion);
   const brand = searchParams.get('marca') ?? '';
   const line = searchParams.get('linea') ?? '';
   const style = searchParams.get('estilo') ?? searchParams.get('collection') ?? '';
@@ -181,6 +183,7 @@ function CatalogoContent({ initialProducts }: { initialProducts?: Product[] }) {
     return counts;
   }, [products, productTypes]);
   const shownTypes = productTypes.filter((t) => (typeCounts.get(t.value) ?? 0) > 0);
+  const shownCollections = storeCollections.filter((c) => (products ?? []).some((p) => p.collectionSlugs?.includes(c.slug)));
   const styles = useMemo(() => {
     const present = new Set(typeProducts.map((p) => p.collection));
     const fromMenu = collectionsMenu.filter((c) => present.has(c.value));
@@ -225,6 +228,7 @@ function CatalogoContent({ initialProducts }: { initialProducts?: Product[] }) {
   const filtered = useMemo(() => {
     if (!products) return [];
     let list = products;
+    if (coleccion) list = list.filter((p) => p.collectionSlugs?.includes(coleccion));
     if (tipo) list = list.filter((p) => productTypeValue(p, productTypes) === tipo);
     if (gender) list = list.filter((p) => p.gender === gender || p.gender === 'unisex');
     if (brand) list = list.filter((p) => brandMatches(p.brand, brand));
@@ -241,15 +245,16 @@ function CatalogoContent({ initialProducts }: { initialProducts?: Product[] }) {
       list = list.filter((p) => normalize(`${p.brand} ${p.title} ${p.collection} ${productTypeOf(p, productTypes).label}`).includes(needle));
     }
     return sortProducts(list, sort);
-  }, [products, tipo, productTypes, gender, brand, line, style, size, onlyOffers, price, q, sort]);
+  }, [products, coleccion, tipo, productTypes, gender, brand, line, style, size, onlyOffers, price, q, sort]);
 
-  const activeCount = [tipo, gender, brand, style, size, price, onlyOffers ? '1' : '', q].filter(Boolean).length;
+  const activeCount = [coleccion, tipo, gender, brand, style, size, price, onlyOffers ? '1' : '', q].filter(Boolean).length;
   const genderLabel = GENDERS.find((g) => g.value === gender)?.label;
   const title = q
     ? `Resultados para “${q}”`
     : onlyOffers
       ? 'Ofertas 🔥'
-      : (brand && line ? `${brand} ${line}` : brand) ||
+      : activeCollection?.name ||
+        (brand && line ? `${brand} ${line}` : brand) ||
         (activeType
           ? `${activeType.label}${genderLabel ? ` para ${genderLabel.toLowerCase()}` : ''}`
           : genderLabel
@@ -265,6 +270,18 @@ function CatalogoContent({ initialProducts }: { initialProducts?: Product[] }) {
             {shownTypes.map((t) => (
               <FilterChip key={t.value} active={tipo === t.value} onClick={() => toggleParam('tipo', t.value)}>
                 {t.icon} {t.label}
+              </FilterChip>
+            ))}
+          </div>
+        </div>
+      )}
+      {shownCollections.length > 0 && (
+        <div>
+          <p className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.2em] text-muted">Colección</p>
+          <div className="flex flex-wrap gap-2">
+            {shownCollections.map((c) => (
+              <FilterChip key={c.slug} active={coleccion === c.slug} onClick={() => toggleParam('coleccion', c.slug)}>
+                {c.name}
               </FilterChip>
             ))}
           </div>
@@ -374,7 +391,29 @@ function CatalogoContent({ initialProducts }: { initialProducts?: Product[] }) {
 
   return (
     <div>
-      {starView ? (
+      {activeCollection && !starView ? (
+        <div className="relative isolate overflow-hidden bg-[#070707] text-white">
+          {activeCollection.image && (
+            <SafeImage src={activeCollection.image} alt={activeCollection.name} fill priority sizes="100vw" className="-z-20 object-cover object-[50%_70%] opacity-60" />
+          )}
+          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-black/90 via-black/60 to-black/10" />
+          <div className="container-page py-14 sm:py-20">
+            <nav className="mb-4 text-xs text-white/50">
+              <Link href="/" className="hover:text-primary-light">Inicio</Link> / <Link href="/catalogo" className="hover:text-primary-light">Catálogo</Link> /{' '}
+              <span className="text-white">Colecciones</span>
+            </nav>
+            <p className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.35em] text-primary-light">
+              <span className="h-px w-10 bg-gold-gradient" />
+              Colección
+            </p>
+            <h1 className="mt-3 max-w-3xl font-heading text-4xl font-black uppercase leading-[0.95] sm:text-6xl">{activeCollection.name}</h1>
+            {activeCollection.description && <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/75 sm:text-base">{activeCollection.description}</p>}
+            <p className="mt-5 text-xs font-bold uppercase tracking-wider text-white/50">
+              {products ? `${filtered.length} ${filtered.length === 1 ? 'producto' : 'productos'}` : ''}
+            </p>
+          </div>
+        </div>
+      ) : starView ? (
         <div className="relative isolate overflow-hidden bg-[#070707] text-white">
           <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_78%_50%,rgba(184,146,58,0.25),transparent_60%)]" />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />

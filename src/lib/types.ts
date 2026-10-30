@@ -60,6 +60,9 @@ export interface Product {
   // Si está vacía se deduce del nombre del modelo.
   line?: string;
   gender: Gender;
+  // Colecciones propias de la tienda a las que pertenece (slugs de
+  // SiteSettings.storeCollections). Un producto puede estar en varias.
+  collectionSlugs?: string[];
   // Tipo de producto (value de un ProductType de la configuración: "sandalias",
   // "camisetas"...). Vacío = el primer tipo configurado.
   category?: string;
@@ -83,6 +86,18 @@ export interface Product {
   reviews?: ProductReview[];
   createdAt?: number;
   updatedAt?: number;
+}
+
+// Colección propia de la tienda (como en Shopify): agrupa productos de
+// cualquier tipo y marca ("Verano 2026", "Nueva temporada"...). Tiene su
+// página en /coleccion/<slug> y se administra en Admin → Colecciones.
+export interface StoreCollection {
+  slug: string;
+  name: string;
+  description: string;
+  image: string;
+  // Se muestra en la sección "Colecciones" de la portada.
+  showOnHome: boolean;
 }
 
 // Tipo de producto de la tienda multimarca (Sandalias, Camisetas, ...). Se
@@ -327,6 +342,7 @@ export interface CommissionSettings {
 export interface SiteSettings {
   storeName: string;
   commission: CommissionSettings;
+  storeCollections: StoreCollection[];
   productTypes: ProductType[];
   logoUrl: string;
   logoHeight: number;

@@ -11,6 +11,7 @@ import { useSiteSettings } from '@/lib/settings-context';
 import { classNames } from '@/lib/utils';
 import { brandHref, brandTagline, isStarBrand } from '@/lib/brand';
 import SafeImage from './SafeImage';
+import { collectionHref } from '@/lib/storeCollections';
 import MobileMenu from './MobileMenu';
 import { CartIcon, ChevronIcon, CloseIcon, MenuIcon, SearchIcon } from './icons';
 
@@ -27,7 +28,7 @@ export default function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [scrolled, setScrolled] = useState(false);
-  const { storeName, logoUrl, logoHeight, brands: allBrands, collectionsMenu, featuredBrand, productTypes } = useSiteSettings();
+  const { storeName, logoUrl, logoHeight, brands: allBrands, collectionsMenu, featuredBrand, productTypes, storeCollections } = useSiteSettings();
   const mainLinks = [...productTypes.map((t) => ({ href: `/catalogo?tipo=${encodeURIComponent(t.value)}`, label: t.label })), ...GENDER_LINKS];
   const starOn = featuredBrand.enabled && !!featuredBrand.name;
   const brands = allBrands.filter((b) => !isStarBrand(featuredBrand, b));
@@ -172,7 +173,7 @@ export default function Header() {
             )}
           </div>
 
-          {collectionsMenu.length > 0 && (
+          {(storeCollections.length > 0 || collectionsMenu.length > 0) && (
             <div className="relative">
               <button
                 onClick={() => setOpenMenu((m) => (m === 'estilos' ? null : 'estilos'))}
@@ -181,7 +182,22 @@ export default function Header() {
                 Colecciones <ChevronIcon size={12} dir={openMenu === 'estilos' ? 'up' : 'down'} />
               </button>
               {openMenu === 'estilos' && (
-                <div className="absolute left-0 top-full z-10 mt-3 w-60 animate-slideUp rounded-2xl border border-border bg-white p-2 shadow-dark">
+                <div className="absolute left-0 top-full z-10 mt-3 w-72 animate-slideUp rounded-2xl border border-border bg-white p-2 shadow-dark">
+                  {storeCollections.map((c) => (
+                    <Link
+                      key={c.slug}
+                      href={collectionHref(c)}
+                      className="flex items-center gap-3 rounded-xl px-2 py-2 text-sm font-bold normal-case tracking-normal text-ink transition-colors hover:bg-cream-alt hover:text-primary"
+                    >
+                      <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-ink">
+                        {c.image && <SafeImage src={c.image} alt="" fill sizes="40px" className="object-cover" />}
+                      </span>
+                      {c.name}
+                    </Link>
+                  ))}
+                  {storeCollections.length > 0 && collectionsMenu.length > 0 && (
+                    <p className="mt-2 border-t border-border px-3 pb-1 pt-3 text-[10px] font-extrabold uppercase tracking-[0.2em] text-muted">Estilos</p>
+                  )}
                   {collectionsMenu.map((c) => (
                     <Link
                       key={c.value}

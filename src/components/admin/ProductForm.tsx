@@ -8,7 +8,7 @@ import { FITS, GENDERS, type Fit, type Gender, type Product, type ProductColor, 
 import { useSiteSettings } from '@/lib/settings-context';
 import { formatPrice, parseCop, slugify } from '@/lib/utils';
 import { createProduct, updateProduct, deleteProduct, getAllProducts } from '@/lib/products';
-import { registerBrand } from '@/lib/settings';
+import { getSiteSettings, registerBrand, updateSiteSettingsFields } from '@/lib/settings';
 import { suggestLine } from '@/lib/brand';
 import { uploadProductImage, deleteProductImage, type ImageCropMode } from '@/lib/storage';
 import { resizeForUpload } from '@/lib/imageCrop';
@@ -52,7 +52,7 @@ const sortSizes = sortSizeList;
 
 export default function ProductForm({ product }: { product?: Product }) {
   const router = useRouter();
-  const { brands: knownBrands, payments: paySettings, productTypes } = useSiteSettings();
+  const { brands: knownBrands, payments: paySettings, productTypes, storeCollections } = useSiteSettings();
   const isEditing = !!product;
 
   const [title, setTitle] = useState(product?.title ?? '');
@@ -86,6 +86,39 @@ export default function ProductForm({ product }: { product?: Product }) {
   const [isNew, setIsNew] = useState(product?.isNew ?? false);
   const [stock, setStock] = useState(product?.stock?.toString() ?? '20');
   const [featured, setFeatured] = useState(product?.featured ?? false);
+  const [collectionSlugs, setCollectionSlugs] = useState<string[]>(product?.collectionSlugs ?? []);
+  const [createdCollections, setCreatedCollections] = useState<{ slug: string; name: string }[]>([]);
+  const [newCollection, setNewCollection] = useState('');
+  const [creatingCollection, setCreatingCollection] = useState(false);
+  const allCollections = [...storeCollections, ...createdCollections.filter((c) => !storeCollections.some((s) => s.slug === c.slug))];
+
+  function toggleCollection(slug: string) {
+    setCollectionSlugs((list) => (list.includes(slug) ? list.filter((s) => s !== slug) : [...list, slug]));
+  }
+
+  // Crea una colección nueva sin salir del formulario (queda en Admin →
+  // Colecciones para ponerle foto y descripción).
+  async function createCollection() {
+    const name = newCollection.trim();
+    const slug = slugify(name);
+    if (!name || !slug) return;
+    setCreatingCollection(true);
+    try {
+      const current = await getSiteSettings();
+      if (!current.storeCollections.some((c) => c.slug === slug)) {
+        await updateSiteSettingsFields({
+          storeCollections: [...current.storeCollections, { slug, name, description: '', image: '', showOnHome: true }],
+        });
+      }
+      setCreatedCollections((list) => [...list, { slug, name }]);
+      setCollectionSlugs((list) => (list.includes(slug) ? list : [...list, slug]));
+      setNewCollection('');
+    } catch {
+      alert('No se pudo crear la colección. Intenta de nuevo.');
+    } finally {
+      setCreatingCollection(false);
+    }
+  }
   const [active, setActive] = useState(product?.active ?? true);
   const [category, setCategory] = useState(() => productTypeOf(product ?? {}, productTypes).value);
   const currentType = productTypeOf({ category }, productTypes);
@@ -289,6 +322,7 @@ export default function ProductForm({ product }: { product?: Product }) {
       line: line.trim() || suggestLine(title, brand),
       gender,
       category,
+      collectionSlugs,
       fit,
       isNew,
       description,
@@ -386,7 +420,7 @@ export default function ProductForm({ product }: { product?: Product }) {
             </div>
             <div className="sm:col-span-3 sm:order-last">
               <label className="mb-1 block text-sm font-semibold text-ink">
-                Colección de la marca <span className="font-normal text-muted">(ej: Air Force, Cloud, Samba)</span>
+                Línea / modelo de la marca <span className="font-normal text-muted">(ej: Air Force, Cloud, Samba)</span>
               </label>
               <input
                 value={line}
@@ -454,6 +488,49 @@ export default function ProductForm({ product }: { product?: Product }) {
             La horma no se muestra al cliente: solo ajusta en silencio la talla que recomienda la calculadora (ej: si calza
             pequeño, recomienda una talla más). Si no estás seguro, déjala en normal.
           </p>
+
+          <div className="mt-6 rounded-2xl border-2 border-primary/30 bg-gold-50/60 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm font-bold text-ink">🗂️ Colecciones</p>
+              <a href="/admin/colecciones" className="text-xs font-bold text-muted underline hover:text-ink">
+                Administrar colecciones
+              </a>
+            </div>
+            <p className="mt-1 text-xs text-muted">Toca las colecciones donde quieres que aparezca este producto (puede estar en varias).</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {allCollections.map((c) => (
+                <button
+                  key={c.slug}
+                  type="button"
+                  onClick={() => toggleCollection(c.slug)}
+                  className={`rounded-full px-4 py-2 text-sm font-bold ring-1 transition-colors ${
+                    collectionSlugs.includes(c.slug) ? 'bg-ink text-white ring-ink' : 'bg-white text-ink ring-border hover:ring-ink'
+                  }`}
+                >
+                  {collectionSlugs.includes(c.slug) ? '✓ ' : ''}
+                  {c.name}
+                </button>
+              ))}
+              {allCollections.length === 0 && <p className="text-xs text-muted">Todavía no hay colecciones: crea la primera aquí abajo.</p>}
+            </div>
+            <div className="mt-3 flex gap-2">
+              <input
+                value={newCollection}
+                onChange={(e) => setNewCollection(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    createCollection();
+                  }
+                }}
+                placeholder="Nueva colección (ej: Navidad 2026)"
+                className="flex-1 rounded-lg border border-border bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none"
+              />
+              <button type="button" onClick={createCollection} disabled={creatingCollection || !newCollection.trim()} className="btn-secondary px-4 py-2 text-sm disabled:opacity-50">
+                {creatingCollection ? 'Creando…' : '+ Crear'}
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="rounded-card bg-white p-6 shadow-soft">

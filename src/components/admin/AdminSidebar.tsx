@@ -10,6 +10,7 @@ const LINKS = [
   { href: '/admin', icon: '📊', label: 'Panel', exact: true },
   { href: '/admin/productos', icon: '👡', label: 'Productos' },
   { href: '/admin/productos/carga-rapida', icon: '⚡', label: 'Carga rápida' },
+  { href: '/admin/colecciones', icon: '🗂️', label: 'Colecciones' },
   { href: '/admin/pedidos', icon: '📦', label: 'Pedidos' },
   { href: '/admin/visitantes', icon: '👀', label: 'Visitantes' },
   { href: '/admin/fidelizacion', icon: '⭐', label: 'Fidelización' },

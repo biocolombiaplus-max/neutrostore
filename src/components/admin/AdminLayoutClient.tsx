@@ -6,6 +6,7 @@ import { STAFF_KEY } from '@/lib/visitor';
 import AdminAuthGuard from './AdminAuthGuard';
 import AdminSidebar from './AdminSidebar';
 import OrderAlertListener from './OrderAlertListener';
+import { SettingsProvider } from '@/lib/settings-context';
 
 export default function AdminLayoutClient({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -34,9 +35,12 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
     };
   }, []);
 
-  if (isLoginPage) return <>{children}</>;
+  // El panel lee la configuración guardada (tipos de producto, colecciones,
+  // marcas, logo...) desde Firebase, no los valores de fábrica.
+  if (isLoginPage) return <SettingsProvider>{children}</SettingsProvider>;
 
   return (
+    <SettingsProvider>
     <AdminAuthGuard>
       <div className="flex min-h-screen flex-col bg-cream sm:flex-row">
         <AdminSidebar />
@@ -48,5 +52,6 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
         </div>
       </div>
     </AdminAuthGuard>
+    </SettingsProvider>
   );
 }

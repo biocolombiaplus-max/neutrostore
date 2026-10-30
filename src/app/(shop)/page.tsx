@@ -13,6 +13,7 @@ import Faq from '@/components/home/Faq';
 import HomeCTA from '@/components/HomeCTA';
 import RealDeliveries from '@/components/RealDeliveries';
 import ChatProofs from '@/components/ChatProofs';
+import CollectionsShowcase from '@/components/home/CollectionsShowcase';
 import { ProductTypeRails, ProductTypeTiles } from '@/components/home/ProductTypeShowcase';
 import { productTypeValue } from '@/lib/productTypes';
 import type { Product } from '@/lib/types';
@@ -35,6 +36,8 @@ export default async function HomePage() {
     typeCounts[t] = (typeCounts[t] ?? 0) + 1;
     if ((rails[t] ??= []).length < 8) rails[t].push(slimProduct(p));
   }
+  const collectionCounts: Record<string, number> = {};
+  for (const p of products) for (const slug of p.collectionSlugs ?? []) collectionCounts[slug] = (collectionCounts[slug] ?? 0) + 1;
   const starProducts = products.filter((p) => isStarBrand(settings.featuredBrand, p.brand)).map(slimProduct);
 
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://neutrostore.vercel.app').replace(/\/$/, '');
@@ -74,6 +77,7 @@ export default async function HomePage() {
       {/* Los productos primero: quien llega del anuncio ve productos de inmediato. */}
       <FeaturedProducts initialProducts={featured} />
       <ProductTypeRails rails={rails} />
+      <CollectionsShowcase counts={collectionCounts} />
       <CategoryTiles />
       <ChatProofs />
       <RealDeliveries />

@@ -4,8 +4,13 @@ import { getActiveProductsServer } from '@/lib/productsServer';
 import { slimProduct } from '@/lib/productMap';
 import { getSiteSettingsServer } from '@/lib/settingsServer';
 
-export async function generateMetadata({ searchParams }: { searchParams: { marca?: string; genero?: string; tipo?: string } }): Promise<Metadata> {
-  const { productTypes } = await getSiteSettingsServer();
+export async function generateMetadata({ searchParams }: { searchParams: { marca?: string; genero?: string; tipo?: string; coleccion?: string } }): Promise<Metadata> {
+  const { productTypes, storeCollections } = await getSiteSettingsServer();
+  const collection = storeCollections.find((c) => c.slug === searchParams.coleccion);
+  if (collection) {
+    const description = `${collection.description || collection.name}. Envío a toda Colombia con Servientrega y pago contra entrega.`;
+    return { title: collection.name, description, alternates: { canonical: `/coleccion/${collection.slug}` }, openGraph: { title: collection.name, description } };
+  }
   const brand = searchParams.marca;
   const type = productTypes.find((t) => t.value === searchParams.tipo);
   const gender = searchParams.genero === 'hombre' ? 'hombre' : searchParams.genero === 'mujer' ? 'mujer' : '';

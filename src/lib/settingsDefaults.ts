@@ -8,6 +8,31 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   storeName: process.env.NEXT_PUBLIC_STORE_NAME || 'Neutro Store',
   // Biomarketing gana $5.000 por cada venta de sus campañas de Meta Ads.
   commission: { enabled: true, name: 'Biomarketing', amount: 5000, per: 'venta', onlyMetaAds: true },
+  // Colecciones propias (Admin → Colecciones). Las de ejemplo se pueden
+  // editar o borrar.
+  storeCollections: [
+    {
+      slug: 'verano-2026',
+      name: 'Colección Verano 2026',
+      description: 'Sandalias y camisetas frescas para los días de sol.',
+      image: '/sandalias/portada-roja.jpg',
+      showOnHome: true,
+    },
+    {
+      slug: 'glam-dorado',
+      name: 'Glam Dorado',
+      description: 'Detalles dorados que se roban todas las miradas.',
+      image: '/sandalias/tachas-negra-2.jpg',
+      showOnHome: true,
+    },
+    {
+      slug: 'basicos-premium',
+      name: 'Básicos Premium',
+      description: 'Las prendas que combinan con todo, en algodón de calidad.',
+      image: '/camisetas/camiseta-negra.jpg',
+      showOnHome: true,
+    },
+  ],
   // Tipos de producto de la tienda multimarca. Desde el panel se agregan más
   // (gorras, bolsos, jeans...) con sus propias tallas.
   productTypes: [
@@ -369,6 +394,7 @@ export function mergeWithDefaults(data: Partial<SiteSettings> | undefined): Site
       bullets: data.featuredBrand?.bullets?.length ? data.featuredBrand.bullets : DEFAULT_SETTINGS.featuredBrand.bullets,
     },
     commission: { ...DEFAULT_SETTINGS.commission, ...data.commission },
+    storeCollections: Array.isArray(data.storeCollections) ? data.storeCollections.filter((c) => c?.slug && c?.name) : DEFAULT_SETTINGS.storeCollections,
     productTypes: data.productTypes?.some((t) => t.value && t.label) ? data.productTypes.filter((t) => t.value && t.label) : DEFAULT_SETTINGS.productTypes,
     announcementMessages: data.announcementMessages?.length ? data.announcementMessages : DEFAULT_SETTINGS.announcementMessages,
     categoryTiles: {

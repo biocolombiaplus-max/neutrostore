@@ -39,6 +39,7 @@ export const DEMO_PRODUCTS: Product[] = [
     line: 'Plataforma',
     gender: 'mujer',
     category: 'sandalias',
+    collectionSlugs: ['verano-2026', 'glam-dorado'],
     description:
       'La sandalia de la temporada: tira en H de textura granulada con el logo GUESS en metal dorado y plataforma acolchada que estiliza sin sacrificar comodidad. Se ve increíble con jean, vestido o shorts.\n\n• Tira en H con logo metálico dorado\n• Plantilla acolchada en cuero sintético\n• Plataforma liviana de 4 cm con costura decorativa\n• Suela antideslizante\n• Incluye su caja',
     price: 189900,
@@ -65,6 +66,7 @@ export const DEMO_PRODUCTS: Product[] = [
     line: 'Tachas',
     gender: 'mujer',
     category: 'sandalias',
+    collectionSlugs: ['verano-2026', 'glam-dorado'],
     description:
       'Glam para todos los días: tira en H cubierta de tachas doradas de diferentes tamaños sobre una base negra súper cómoda. El detalle que levanta cualquier outfit.\n\n• Tachas metálicas doradas aplicadas a mano\n• Base acolchada anatómica\n• Suela flexible y antideslizante\n• Horma cómoda para uso diario\n• Incluye su caja',
     price: 149900,
@@ -91,6 +93,7 @@ export const DEMO_PRODUCTS: Product[] = [
     line: 'Logo Line',
     gender: 'unisex',
     category: 'camisetas',
+    collectionSlugs: ['verano-2026', 'basicos-premium'],
     description:
       'Camiseta premium de algodón con el logo MONASTERY repetido en línea al frente. Corte regular, cuello redondo acanalado y una tela suave que conserva su forma lavada tras lavada.\n\n• 100% algodón premium\n• Estampado frontal en línea\n• Cuello redondo acanalado\n• Corte regular, unisex\n• Con sus etiquetas originales',
     price: 129900,
@@ -117,6 +120,7 @@ export const DEMO_PRODUCTS: Product[] = [
     line: 'Essential',
     gender: 'unisex',
     category: 'camisetas',
+    collectionSlugs: ['basicos-premium'],
     description:
       'La básica que combina con todo: corte oversize, algodón pesado y caída perfecta. Ideal para el día a día con jean, jogger o shorts.\n\n• Algodón pesado 220 g\n• Corte oversize con hombro caído\n• Cuello redondo reforzado\n• Unisex',
     price: 89900,
