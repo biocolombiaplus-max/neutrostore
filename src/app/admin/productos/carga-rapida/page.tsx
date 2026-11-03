@@ -77,7 +77,7 @@ export default function CargaRapidaPage() {
     brand: '',
     gender: 'mujer' as Gender,
     category: productTypes[0]?.value ?? 'sandalias',
-    price: String(payments.defaultPrice || 189900),
+    price: String(payments.defaultPrice || 80000),
   });
   const defaultType = productTypeOf({ category: defaults.category }, productTypes);
   const [publishing, setPublishing] = useState(false);

@@ -5,6 +5,7 @@ import FeaturedBrandSpotlight from '@/components/home/FeaturedBrandSpotlight';
 import CategoryTiles from '@/components/home/CategoryTiles';
 import FeaturedProducts from '@/components/FeaturedProducts';
 import PaymentMethods from '@/components/home/PaymentMethods';
+import { priceSummary } from '@/lib/priceSummary';
 import HowItWorks from '@/components/HowItWorks';
 import SizeGuidePromo from '@/components/home/SizeGuidePromo';
 import Benefits from '@/components/Benefits';
@@ -83,7 +84,7 @@ export default async function HomePage() {
       <RealDeliveries />
       <FeaturedBrandSpotlight initialProducts={starProducts} />
       <BrandStrip />
-      <PaymentMethods />
+      <PaymentMethods prices={priceSummary(products, settings)} />
       <HowItWorks />
       <SizeGuidePromo />
       <Benefits />

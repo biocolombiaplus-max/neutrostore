@@ -151,8 +151,9 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   payments: {
     codAdvance: 15000,
     codEnabled: true,
-    codUnitPrice: 209900,
-    defaultPrice: 189900,
+    // 0 = contra entrega cobra el precio de cada producto.
+    codUnitPrice: 0,
+    defaultPrice: 80000,
     // Cuentas de ejemplo: reemplázalas desde el panel (Configuración → Pagos).
     bankAccounts: [
       {

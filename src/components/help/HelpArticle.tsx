@@ -12,6 +12,8 @@ import { useSiteSettings } from '@/lib/settings-context';
 import type { Order } from '@/lib/types';
 import { classNames, formatPrice, paymentMethodLabel, whatsappLinkTo } from '@/lib/utils';
 import { generalMessage } from '@/lib/wa-messages';
+import { getActiveProducts } from '@/lib/productsClient';
+import { priceSummary, type PriceSummary } from '@/lib/priceSummary';
 
 // ——— Piezas de diseño compartidas ———
 
@@ -242,19 +244,28 @@ function Envios() {
 }
 
 function MetodosPago() {
-  const { payments } = useSiteSettings();
-  const rest = payments.codUnitPrice > 0 ? payments.codUnitPrice : payments.defaultPrice;
+  const settings = useSiteSettings();
+  const { payments, shipping } = settings;
+  // Precios reales del catálogo (desde cuánto y un ejemplo).
+  const [prices, setPrices] = useState<PriceSummary | null>(null);
+  useEffect(() => {
+    getActiveProducts()
+      .then((list) => setPrices(priceSummary(list, settings)))
+      .catch(() => setPrices(null));
+  }, [settings]);
+  const ex = prices?.example ?? null;
   return (
     <div className="space-y-5">
       <div className="grid gap-5 md:grid-cols-2">
         <Block title="🏦 Transferencia o depósito">
           <p>
-            Transfiere desde la app de cualquier banco o deposita en <strong className="text-ink">Bancolombia</strong> (ventanilla o agente
-            Pichincha Mi Vecino).
+            Transfiere desde la app de cualquier banco o Nequi, o deposita en un <strong className="text-ink">Corresponsal Bancolombia</strong>.
           </p>
           <List
             items={[
-              `Precio por par: ${formatPrice(payments.defaultPrice)}.`,
+              ex
+                ? `Pagas el precio del producto + el envío (${formatPrice(shipping.defaultRate)}). Ej: ${ex.title} ${formatPrice(ex.price)} + envío = ${formatPrice(ex.price + shipping.defaultRate)}.`
+                : `Pagas el precio del producto + el envío (${formatPrice(shipping.defaultRate)}).`,
               'Al confirmar tu pedido te mostramos nuestra cuenta oficial con botones para copiar cada dato.',
               'Envías la foto del comprobante por WhatsApp y despachamos el mismo día.',
             ]}
@@ -271,8 +282,8 @@ function MetodosPago() {
               </div>
               <div className="rounded-2xl bg-cream-alt p-3">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-muted">Al recibir</p>
-                <p className="text-2xl font-black text-ink">{formatPrice(rest)}</p>
-                <p className="text-[10px]">en efectivo, por par</p>
+                <p className="text-2xl font-black text-ink">{ex ? formatPrice(ex.codPrice) : 'Tu producto'}</p>
+                <p className="text-[10px]">{ex ? `en efectivo · ej: ${ex.title}` : 'en efectivo'}</p>
               </div>
             </div>
             <p className="text-xs">El adelanto del envío se paga por transferencia o depósito en Bancolombia y garantiza tu pedido.</p>

@@ -22,7 +22,7 @@ import type {
 } from '@/lib/types';
 import { CLOTHING_SIZES, sortSizeList } from '@/lib/productTypes';
 import { ADMIN_EMAIL, changeAdminPassword } from '@/lib/auth';
-import { slugify } from '@/lib/utils';
+import { formatPrice, slugify } from '@/lib/utils';
 import { PaymentLogoChip, CourierLogo } from '@/components/brand/PaymentLogos';
 import PhotoBackupCard from '@/components/admin/PhotoBackupCard';
 
@@ -723,7 +723,7 @@ export default function ConfiguracionPage() {
           </p>
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Precio general por transferencia (COP, se sugiere al crear productos)">
+          <Field label="Precio sugerido al crear un producto nuevo (COP; no cambia los productos que ya existen)">
             <input
               type="number"
               min={0}
@@ -733,7 +733,7 @@ export default function ConfiguracionPage() {
               className={inputClass}
             />
           </Field>
-          <Field label="Precio contra entrega por par: lo que paga en efectivo al recibir (COP; 0 = precio normal)">
+          <Field label="Precio contra entrega para TODOS los productos (COP; 0 = cada producto con su propio precio, recomendado)">
             <input
               type="number"
               min={0}
@@ -742,6 +742,14 @@ export default function ConfiguracionPage() {
               onChange={(e) => updatePayments('codUnitPrice', Number(e.target.value))}
               className={inputClass}
             />
+            {settings.payments.codUnitPrice > 0 ? (
+              <p className="mt-1 rounded-lg bg-urgent/10 p-2 text-xs font-semibold text-urgent">
+                ⚠️ Con este valor, TODO pedido contra entrega cobra {formatPrice(settings.payments.codUnitPrice)} por unidad al recibir, sin importar el
+                precio del producto. Déjalo en 0 para cobrar el precio de cada producto.
+              </p>
+            ) : (
+              <p className="mt-1 text-xs text-muted">✓ Contra entrega cobra el mismo precio que muestra cada producto.</p>
+            )}
           </Field>
         </div>
 
