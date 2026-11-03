@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { User } from 'firebase/auth';
 import { watchAuthState, isAdminUser, logoutAdmin } from '@/lib/auth';
+import { refreshStore } from '@/lib/storeRefresh';
 import { AdminContext } from '@/lib/admin-context';
 
 type Status = 'checking' | 'authorized' | 'unauthorized';
@@ -32,6 +33,9 @@ export default function AdminAuthGuard({ children }: { children: React.ReactNode
       }
       setUser(firebaseUser);
       setStatus('authorized');
+      // Al abrir el panel la tienda se pone al día (por si hubo cambios
+      // hechos fuera del panel que aún estén en caché).
+      refreshStore();
     });
     return () => unsubscribe();
   }, [router]);

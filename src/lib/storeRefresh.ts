@@ -18,3 +18,15 @@ export function refreshStore(): void {
     }
   }, 1500);
 }
+
+// Igual, pero al instante y diciendo si funcionó (botón "Actualizar la tienda").
+export async function refreshStoreNow(): Promise<boolean> {
+  try {
+    const token = await auth?.currentUser?.getIdToken();
+    if (!token) return false;
+    const res = await fetch('/api/revalidate', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}

@@ -29,23 +29,33 @@ function unwrapFields(fields: Record<string, any>): Record<string, any> {
   return result;
 }
 
+// Última configuración leída bien: si Firestore tarda o falla un momento, la
+// tienda sigue mostrando la configuración real (no la de fábrica, que tiene
+// textos de ejemplo y otro WhatsApp).
+let lastGood: SiteSettings | null = null;
+
 export async function getSiteSettingsServer(): Promise<SiteSettings> {
   const projectId = FIREBASE_CONFIG.projectId;
   if (!projectId) return DEFAULT_SETTINGS;
+  const fallback = () => lastGood ?? DEFAULT_SETTINGS;
 
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 2500);
     const res = await fetch(
       `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/settings/site`,
-      { signal: controller.signal, next: { revalidate: 3600, tags: ['settings'] } },
+      // Un solo documento: se refresca cada minuto (máx. ~1.400 lecturas al
+      // día), así los cambios se ven casi al instante aunque no pasen por el
+      // panel. Al guardar en el panel se refresca de inmediato.
+      { signal: controller.signal, next: { revalidate: 60, tags: ['settings'] } },
     );
     clearTimeout(timeout);
-    if (!res.ok) return DEFAULT_SETTINGS;
+    if (!res.ok) return fallback();
 
     const data = await res.json();
-    return mergeWithDefaults(unwrapFields(data.fields ?? {}) as Partial<SiteSettings>);
+    lastGood = mergeWithDefaults(unwrapFields(data.fields ?? {}) as Partial<SiteSettings>);
+    return lastGood;
   } catch {
-    return DEFAULT_SETTINGS;
+    return fallback();
   }
 }

@@ -7,6 +7,7 @@ import { getAllOrders } from '@/lib/orders';
 import { getSiteSettings, updateSiteSettingsFields } from '@/lib/settings';
 import { formatPrice } from '@/lib/utils';
 import CommissionBar, { commissionOrders } from '@/components/admin/CommissionBar';
+import { refreshStoreNow } from '@/lib/storeRefresh';
 import type { Order, Product, SiteSettings } from '@/lib/types';
 
 // Pedidos que cuentan como venta (los pendientes aún no han pagado).
@@ -19,6 +20,7 @@ export default function AdminDashboard() {
   const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [paid, setPaid] = useState<string[]>([]);
   const [resetting, setResetting] = useState(false);
+  const [refreshing, setRefreshing] = useState<'idle' | 'busy' | 'ok' | 'error'>('idle');
 
   useEffect(() => {
     (async () => {
@@ -85,6 +87,27 @@ export default function AdminDashboard() {
             {!!since && <> · desde el {new Date(since).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}</>}
           </p>
         </div>
+        <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={async () => {
+            setRefreshing('busy');
+            const ok = await refreshStoreNow();
+            setRefreshing(ok ? 'ok' : 'error');
+            setTimeout(() => setRefreshing('idle'), 4000);
+          }}
+          disabled={refreshing === 'busy'}
+          title="La tienda guarda los datos unos minutos para cargar rápido. Esto la pone al día ya mismo."
+          className="rounded-full bg-ink px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-primary hover:text-ink disabled:opacity-60"
+        >
+          {refreshing === 'busy'
+            ? 'Actualizando…'
+            : refreshing === 'ok'
+              ? '✓ Tienda actualizada'
+              : refreshing === 'error'
+                ? 'No se pudo, intenta de nuevo'
+                : '🔄 Actualizar la tienda ahora'}
+        </button>
         <button
           type="button"
           onClick={resetStats}
@@ -93,6 +116,7 @@ export default function AdminDashboard() {
         >
           {resetting ? 'Reiniciando...' : '↺ Reiniciar en cero'}
         </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

@@ -9,11 +9,11 @@ import type { Product } from './types';
 import { getSiteSettingsServer } from './settingsServer';
 import { isProductTypeActive } from './productTypes';
 
-// Cada cuánto se refrescan los datos en caché (segundos). Es largo a
-// propósito: cada lectura de todo el catálogo gasta una lectura de Firestore
-// por producto (cuota gratuita: 50.000 al día). Al guardar en el panel la
-// caché se borra al instante (ver /api/revalidate).
-export const PRODUCTS_REVALIDATE = 3600;
+// Cada cuánto se refrescan los datos en caché (segundos): 5 minutos. Cada
+// lectura de todo el catálogo gasta una lectura de Firestore por producto
+// (cuota gratuita: 50.000 al día; con 100 productos son ~29.000). Al guardar
+// en el panel la caché se borra al instante (ver /api/revalidate).
+export const PRODUCTS_REVALIDATE = 300;
 
 function unwrapValue(value: any): any {
   if (value == null) return null;

@@ -5,7 +5,7 @@ import { slimProduct } from '@/lib/productMap';
 // Lista liviana de productos activos para el navegador. La CDN de Vercel la
 // guarda 5 min y la sigue sirviendo al instante mientras se refresca; los
 // datos de Firestore vienen de la caché de una hora (sin gastar lecturas).
-export const revalidate = 3600;
+export const revalidate = 300;
 
 export async function GET() {
   let list;
