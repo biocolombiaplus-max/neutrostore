@@ -24,12 +24,16 @@ export function sharedPhotos(product: { images: string[]; colors: ProductColor[]
   return product.images.filter((u) => !used.has(u));
 }
 
-// Galería para el color elegido: sus fotos primero y luego las generales.
-// Si el color no tiene fotos asignadas, se muestran todas.
+// Galería para el color elegido: sus fotos primero, luego las generales y
+// al final las de los demás colores. Siempre se ven TODAS las fotos del
+// producto (antes solo se veían las del color elegido y, cuando cada color
+// tenía una sola foto, parecía que las demás no se habían subido).
 export function galleryForColor(product: { images: string[]; colors: ProductColor[] }, colorName?: string): string[] {
   const own = photosForColor(product, colorName);
   if (!own.length) return product.images;
-  return [...own, ...sharedPhotos(product).filter((u) => !own.includes(u))];
+  const shared = sharedPhotos(product).filter((u) => !own.includes(u));
+  const others = product.images.filter((u) => !own.includes(u) && !shared.includes(u));
+  return [...own, ...shared, ...others];
 }
 
 // Ordena la galería agrupando por color (en el orden de los colores) y deja

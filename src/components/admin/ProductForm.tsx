@@ -135,6 +135,10 @@ export default function ProductForm({ product }: { product?: Product }) {
   }
   const [colors, setColors] = useState<ProductColor[]>(product?.colors ?? []);
   const [images, setImages] = useState<string[]>(product?.images ?? []);
+  // Fotos quitadas de la galería: se borran de verdad solo cuando el producto
+  // se guarda (si sales sin guardar, el producto publicado no pierde fotos).
+  const [removedImages, setRemovedImages] = useState<string[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null);
   const [soldCount, setSoldCount] = useState(product?.soldCount?.toString() ?? '');
   const [reviews, setReviews] = useState<ProductReview[]>(product?.reviews ?? []);
   const [uploading, setUploading] = useState(false);
@@ -277,8 +281,11 @@ export default function ProductForm({ product }: { product?: Product }) {
     e.target.value = '';
 
     setUploading(true);
+    setUploadProgress({ done: 0, total: queued.length });
+    const failed: string[] = [];
     try {
-      for (const original of queued) {
+      for (const [index, original] of queued.entries()) {
+        setUploadProgress({ done: index, total: queued.length });
         try {
           const resized = await resizeForUpload(original);
           const uploadFile = new File([resized], original.name || `${slug}.jpg`, { type: 'image/jpeg' });
@@ -290,20 +297,39 @@ export default function ProductForm({ product }: { product?: Product }) {
             setDetectNote(`🎨 Detectamos «${detected.name}» en tu foto y lo dejamos listo con su foto. Puedes cambiar el nombre o el tono abajo.`);
           }
         } catch (err) {
-          setUploadError(err instanceof Error ? err.message : 'No se pudo subir la foto. Intenta de nuevo.');
+          failed.push(`${original.name || 'foto'}: ${err instanceof Error ? err.message : 'no se pudo subir'}`);
         }
       }
     } finally {
       setUploading(false);
+      setUploadProgress(null);
+      if (failed.length) {
+        setUploadError(
+          `${failed.length} de ${queued.length} ${queued.length === 1 ? 'foto no se subió' : 'fotos no se subieron'}. Vuelve a intentarlo con ${
+            failed.length === 1 ? 'esa foto' : 'esas fotos'
+          }:\n${failed.join('\n')}`,
+        );
+      }
     }
   }
 
-  async function handleRemoveImage(url: string) {
+  function handleRemoveImage(url: string) {
     const remaining = images.filter((i) => i !== url);
     setImages(remaining);
     setColors((prev) => normalizeColorPhotos(remaining, prev));
-    deleteProductImage(url);
+    setRemovedImages((list) => [...list, url]);
   }
+
+  // Mientras suben fotos, avisar antes de cerrar o recargar la página.
+  useEffect(() => {
+    if (!uploading) return;
+    const warn = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [uploading]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -347,6 +373,8 @@ export default function ProductForm({ product }: { product?: Product }) {
       } else {
         await createProduct(input);
       }
+      // Ya guardado: ahora sí se borran las fotos que se quitaron.
+      removedImages.filter((u) => !images.includes(u)).forEach((u) => deleteProductImage(u).catch(() => {}));
       // Una marca nueva aparece sola en el menú, la cinta de marcas y los filtros.
       await registerBrand(input.brand).catch(() => {});
       router.push('/admin/productos');
@@ -600,7 +628,7 @@ export default function ProductForm({ product }: { product?: Product }) {
               );
             })}
             <label className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border text-xs text-muted hover:border-primary">
-              {uploading ? 'Subiendo...' : '+ Agregar'}
+              {uploading ? (uploadProgress ? `Subiendo ${uploadProgress.done + 1} de ${uploadProgress.total}…` : 'Subiendo...') : '+ Agregar'}
               <input
                 type="file"
                 accept="image/*"
@@ -611,8 +639,14 @@ export default function ProductForm({ product }: { product?: Product }) {
               />
             </label>
           </div>
+          {removedImages.length > 0 && (
+            <p className="mb-2 rounded-lg bg-gold-50 p-3 text-xs font-semibold text-ink ring-1 ring-primary/30">
+              Quitaste {removedImages.length} {removedImages.length === 1 ? 'foto' : 'fotos'}: se {removedImages.length === 1 ? 'elimina' : 'eliminan'} solo
+              cuando guardes. Si sales sin guardar, el producto queda como estaba.
+            </p>
+          )}
           {uploadError && (
-            <p className="mb-2 rounded-lg bg-urgent/10 p-3 text-sm text-urgent">{uploadError}</p>
+            <p className="mb-2 whitespace-pre-line rounded-lg bg-urgent/10 p-3 text-sm text-urgent">{uploadError}</p>
           )}
           <p className="text-xs text-muted">
             Sube varias fotos a la vez, de cualquier tamaño o proporción. La primera foto será la principal, y
@@ -1040,7 +1074,7 @@ export default function ProductForm({ product }: { product?: Product }) {
         {error && <p className="rounded-lg bg-urgent/10 p-3 text-sm text-urgent">{error}</p>}
 
         <button type="submit" disabled={saving || uploading} className="btn-primary w-full disabled:opacity-60">
-          {saving ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Publicar producto'}
+          {saving ? 'Guardando...' : uploading ? 'Espera: subiendo fotos…' : isEditing ? 'Guardar cambios' : 'Publicar producto'}
         </button>
 
         {isEditing && (

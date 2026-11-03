@@ -4,9 +4,12 @@ import Image, { type ImageProps } from 'next/image';
 import { useEffect, useState } from 'react';
 
 // next/image con respaldo: si una foto no carga (servidor ocupado, sin
-// internet...) se reintenta sola un par de veces; solo si sigue fallando se
-// muestra un fondo con el monograma dorado de la tienda en vez de un hueco.
-const RETRIES = 2;
+// internet, la primera vez que se genera su versión optimizada...) se
+// reintenta sola varias veces, esperando cada vez un poco más; el último
+// intento pide la foto original sin optimizar. Solo si todo falla se muestra
+// un fondo con el monograma dorado de la tienda en vez de un hueco.
+const RETRIES = 4;
+const DELAYS = [800, 2000, 4000, 7000];
 
 // hideOnError: para fotos secundarias (la del mouse): si fallan no se muestra
 // nada, así su respaldo no tapa la foto principal.
@@ -35,10 +38,12 @@ export default function SafeImage({ alt, className, hideOnError, ...props }: Ima
       alt={alt}
       className={className}
       onError={() => {
-        if (attempt < RETRIES) setTimeout(() => setAttempt((a) => a + 1), 1200 * (attempt + 1));
+        if (attempt < RETRIES) setTimeout(() => setAttempt((a) => a + 1), DELAYS[attempt] ?? 7000);
         else setFailed(true);
       }}
       {...props}
+      // Último intento: la foto original, sin pasar por la optimización.
+      {...(attempt === RETRIES ? { unoptimized: true } : {})}
     />
   );
 }
