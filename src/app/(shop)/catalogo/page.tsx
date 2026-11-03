@@ -14,9 +14,9 @@ export async function generateMetadata({ searchParams }: { searchParams: { marca
   const brand = searchParams.marca;
   const type = productTypes.find((t) => t.value === searchParams.tipo);
   const gender = searchParams.genero === 'hombre' ? 'hombre' : searchParams.genero === 'mujer' ? 'mujer' : '';
-  const what = type ? type.label : 'Sandalias y camisetas';
+  const what = type ? type.label : 'Sandalias para mujer';
   const title = `${what}${brand ? ` ${brand}` : ''}${gender ? ` para ${gender}` : ''} en Colombia`;
-  const description = `${brand ? `Todos los modelos ${brand}` : type ? `${type.label}: ${type.sub || 'las mejores marcas'}` : 'Tienda multimarca: sandalias, camisetas y más'}${
+  const description = `${brand ? `Todos los modelos ${brand}` : type ? `${type.label}: ${type.sub || 'las mejores marcas'}` : 'Baletas punta fina, slides y tacones'}${
     gender ? ` para ${gender}` : ''
   }. Envío a toda Colombia con Servientrega y pago contra entrega.`;
   return {

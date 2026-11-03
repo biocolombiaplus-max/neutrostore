@@ -28,7 +28,7 @@ export default async function HomePage() {
   // Solo viajan en el HTML los zapatos que se muestran (livianos).
   const tabs = featuredTabs(products);
   const featured = Array.from(new Map([...tabs.vendidos, ...tabs.nuevos, ...tabs.ofertas].map((p) => [p.id, slimProduct(p)])).values());
-  // Vitrinas por tipo de producto (Sandalias, Camisetas...): los más vendidos de cada uno.
+  // Vitrinas por tipo de producto: los más vendidos de cada uno.
   const typeCounts: Record<string, number> = {};
   const rails: Record<string, Product[]> = {};
   for (const p of [...products].sort((a, b) => (b.soldCount ?? 0) - (a.soldCount ?? 0))) {
@@ -51,7 +51,7 @@ export default async function HomePage() {
       url: siteUrl,
       image: `${siteUrl}/og-image.jpg`,
       logo: settings.logoUrl ? (settings.logoUrl.startsWith('http') ? settings.logoUrl : `${siteUrl}${settings.logoUrl}`) : `${siteUrl}/icon-512`,
-      description: 'Tienda multimarca en Colombia: sandalias para mujer, camisetas premium y más, de Guess, Monastery y otras marcas. Envío a todo el país y pago contra entrega.',
+      description: 'Sandalias para mujer en Colombia: baletas punta fina, slides y tacones. Envío a todo el país y pago contra entrega.',
       areaServed: { '@type': 'Country', name: 'Colombia' },
       currenciesAccepted: 'COP',
       paymentAccepted: 'Transferencia bancaria, depósito, pago contra entrega',

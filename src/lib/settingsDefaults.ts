@@ -14,7 +14,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     {
       slug: 'verano-2026',
       name: 'Colección Verano 2026',
-      description: 'Sandalias y camisetas frescas para los días de sol.',
+      description: 'Sandalias frescas y cómodas para los días de sol.',
       image: '/sandalias/portada-roja.jpg',
       showOnHome: true,
     },
@@ -23,13 +23,6 @@ export const DEFAULT_SETTINGS: SiteSettings = {
       name: 'Glam Dorado',
       description: 'Detalles dorados que se roban todas las miradas.',
       image: '/sandalias/tachas-negra-2.jpg',
-      showOnHome: true,
-    },
-    {
-      slug: 'basicos-premium',
-      name: 'Básicos Premium',
-      description: 'Las prendas que combinan con todo, en algodón de calidad.',
-      image: '/camisetas/camiseta-negra.jpg',
       showOnHome: true,
     },
   ],
@@ -79,8 +72,6 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     { label: 'Planas / Slides', value: 'planas' },
     { label: 'Con tachas y apliques', value: 'tachas' },
     { label: 'Tacón y cuña', value: 'tacon' },
-    { label: 'Camisetas estampadas', value: 'estampadas' },
-    { label: 'Camisetas básicas', value: 'basicas' },
   ],
   featuredBrand: {
     enabled: true,
@@ -93,7 +84,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     bullets: ['Logo metálico dorado', 'Plataforma liviana', 'Plantilla acolchada', 'Diseño premium'],
     buttonText: 'Comprar Guess',
   },
-  brands: ['Guess', 'Monastery', 'Neutro Store', 'Tommy Hilfiger', 'Calvin Klein', 'Lacoste', 'Steve Madden', 'Michael Kors'],
+  brands: ['Neutro Store', 'Guess'],
   colors: {
     primary: '#B8923A',
     primaryHover: '#96742A',
@@ -109,7 +100,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     bodyFont: 'Montserrat',
   },
   announcementMessages: [
-    '👡 Nueva colección de sandalias y 👕 camisetas premium — ya disponible',
+    '👡 Nuevas baletas, slides y tacones — ya disponibles',
     '🚚 Envíos a toda Colombia — llegamos a tu puerta',
     '💵 Contra entrega: hoy solo $15.000 para garantizar tu envío y el resto al recibir',
     '🏦 Paga por transferencia, Nequi o depósito en Bancolombia',
@@ -118,18 +109,18 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     '⚡ Pilas: las más vendidas se agotan rapidito',
   ],
   hero: {
-    eyebrow: 'Tienda multimarca · Colección 2026',
-    heading: 'Tu estilo, las mejores marcas',
+    eyebrow: 'Nueva colección 2026 · Mujer',
+    heading: 'Sandalias que enamoran a cada paso',
     subtext:
-      'Sandalias que enamoran y camisetas premium de Guess, Monastery y más marcas originales. Envío a toda Colombia y pagas por transferencia, Nequi o contra entrega.',
+      'Baletas punta fina, slides y tacones para lucir increíble todo el día. Envío a toda Colombia y pagas por transferencia, Nequi o contra entrega.',
     images: ['/sandalias/portada-roja.jpg', '/sandalias/portada-negra.jpg'],
     badge1: '🚚 Envío a toda Colombia',
     badge2: '💵 Contra entrega',
     badge3: '🛡️ Compra segura',
     button1Text: 'Ver sandalias',
     button1Url: '/catalogo?tipo=sandalias',
-    button2Text: 'Ver camisetas',
-    button2Url: '/catalogo?tipo=camisetas',
+    button2Text: 'Ver ofertas',
+    button2Url: '/catalogo?ofertas=1',
     titleSize: 'lg',
     subtextSize: 'md',
   },
@@ -277,7 +268,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     {
       name: 'Sebastián R.',
       city: 'Barranquilla',
-      review: 'Pedí dos camisetas Monastery, la tela es otra cosa y la talla M me quedó perfecta. Me mandaron la guía de Servientrega de una. 10 de 10.',
+      review: 'Pedí las baletas de punta con moño y me quedaron perfectas. Súper cómodas para la oficina. Me mandaron la guía de Servientrega de una. 10 de 10.',
     },
   ],
   faqs: [
@@ -309,19 +300,19 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     {
       question: '¿Cómo sé cuál es mi talla?',
       answer:
-        'En las sandalias tienes el botón "¿Cuál es mi talla?": mides tu pie en centímetros y te decimos la talla exacta. En camisetas te mostramos las medidas de cada talla (S a XXL) y, si tienes dudas, te asesoramos por WhatsApp.',
+        'En cada producto tienes el botón "¿Cuál es mi talla?": mides tu pie en centímetros y te decimos la talla exacta. También puedes tomarle foto a la etiqueta de unos zapatos que te queden bien y te la calculamos al instante. Y si tienes dudas, te asesoramos por WhatsApp.',
     },
   ],
   cta: {
     eyebrow: '¿Qué esperas?',
     heading: 'Estrena hoy. Paga al recibir.',
-    text: 'Elige tus sandalias y camisetas, confirma por WhatsApp y te llegan a la puerta de tu casa en cualquier rincón de Colombia.',
+    text: 'Elige tus sandalias, confirma por WhatsApp y te llegan a la puerta de tu casa en cualquier rincón de Colombia.',
     buttonText: 'Ir al catálogo',
     buttonUrl: '/catalogo',
   },
   footer: {
     brandText:
-      'Tienda multimarca en Colombia: sandalias para mujer y camisetas premium de Guess, Monastery y más marcas, con envío a todo el país.',
+      'Sandalias para mujer en Colombia: baletas punta fina, slides y tacones, con envío a todo el país y pago contra entrega.',
     contactText: '¿Dudas con tu talla o tu pedido? Escríbenos, te respondemos de una.',
     email: '',
     address: 'Colombia',
