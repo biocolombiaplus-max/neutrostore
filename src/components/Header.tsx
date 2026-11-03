@@ -12,6 +12,7 @@ import { classNames } from '@/lib/utils';
 import { brandHref, brandTagline, isStarBrand } from '@/lib/brand';
 import SafeImage from './SafeImage';
 import { collectionHref } from '@/lib/storeCollections';
+import { storeTypes } from '@/lib/productTypes';
 import MobileMenu from './MobileMenu';
 import { CartIcon, ChevronIcon, CloseIcon, MenuIcon, SearchIcon } from './icons';
 
@@ -29,7 +30,7 @@ export default function Header() {
   const [query, setQuery] = useState('');
   const [scrolled, setScrolled] = useState(false);
   const { storeName, logoUrl, logoHeight, brands: allBrands, collectionsMenu, featuredBrand, productTypes, storeCollections } = useSiteSettings();
-  const mainLinks = [...productTypes.map((t) => ({ href: `/catalogo?tipo=${encodeURIComponent(t.value)}`, label: t.label })), ...GENDER_LINKS];
+  const mainLinks = [...storeTypes(productTypes).map((t) => ({ href: `/catalogo?tipo=${encodeURIComponent(t.value)}`, label: t.label })), ...GENDER_LINKS];
   const starOn = featuredBrand.enabled && !!featuredBrand.name;
   const brands = allBrands.filter((b) => !isStarBrand(featuredBrand, b));
 

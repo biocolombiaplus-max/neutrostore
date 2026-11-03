@@ -1,13 +1,15 @@
 import ProductView from './ProductView';
 import { getActiveProductsServer, getProductBySlugServer } from '@/lib/productsServer';
 import { slimProduct } from '@/lib/productMap';
+import { getSiteSettingsServer } from '@/lib/settingsServer';
+import { isProductTypeActive } from '@/lib/productTypes';
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://neutrostore.vercel.app').replace(/\/$/, '');
 
 const absolute = (url: string) => (url.startsWith('http') ? url : `${SITE_URL}${url.startsWith('/') ? '' : '/'}${url}`);
 
 export default async function ProductPage({ params }: { params: { slug: string } }) {
-  const [product, all] = await Promise.all([getProductBySlugServer(params.slug), getActiveProductsServer()]);
+  const [product, all, settings] = await Promise.all([getProductBySlugServer(params.slug), getActiveProductsServer(), getSiteSettingsServer()]);
   // Recomendados: mismo estilo, luego misma marca, luego los más vendidos.
   const related = product
     ? all
@@ -17,7 +19,8 @@ export default async function ProductPage({ params }: { params: { slug: string }
         .slice(0, 4)
         .map(({ p }) => slimProduct(p))
     : [];
-  const active = product && product.active ? product : null;
+  // Un producto inactivo o de un tipo pausado (ej: Camisetas) no se vende.
+  const active = product && product.active && isProductTypeActive(product, settings.productTypes) ? product : null;
 
   // Ficha de producto para Google (precio, disponibilidad, reseñas, fotos):
   // permite que aparezca con estrellas y precio en los resultados.

@@ -53,6 +53,9 @@ export const DEFAULT_SETTINGS: SiteSettings = {
       sizes: ['S', 'M', 'L', 'XL', 'XXL'],
       image: '/camisetas/camiseta-celeste.jpg',
       sub: 'Algodón premium de las mejores marcas',
+      // Pausado por ahora: la tienda es solo de sandalias (se activa en
+      // Configuración → Tipos de producto).
+      active: false,
     },
   ],
   // El logo de Neutro Store viene incluido en /public — desde el panel

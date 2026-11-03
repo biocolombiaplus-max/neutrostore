@@ -10,6 +10,7 @@ import { formatPrice, whatsappLinkTo } from '@/lib/utils';
 import { adviceMessage } from '@/lib/wa-messages';
 import SafeImage from './SafeImage';
 import { collectionHref } from '@/lib/storeCollections';
+import { storeTypes } from '@/lib/productTypes';
 import ShoeStage from './brand/ShoeStage';
 import StarTag from './brand/StarTag';
 import { ChevronIcon, CloseIcon, SearchIcon, WhatsAppIcon } from './icons';
@@ -106,11 +107,11 @@ export default function MobileMenu({ open, onClose }: { open: boolean; onClose: 
           )}
 
           {/* Categorías con foto: las mismas de la portada */}
-          {productTypes.length > 1 && (
+          {storeTypes(productTypes).length > 1 && (
             <>
               <p className="mt-7 text-[11px] font-extrabold uppercase tracking-[0.22em] text-muted">Comprar por tipo</p>
               <div className="mt-3 grid grid-cols-2 gap-2.5">
-                {productTypes.map((t) => (
+                {storeTypes(productTypes).map((t) => (
                   <Link
                     key={t.value}
                     href={`/catalogo?tipo=${encodeURIComponent(t.value)}`}

@@ -6,6 +6,8 @@ import { FIREBASE_CONFIG } from './firebase-config';
 import { DEMO_PRODUCTS } from './demo-products';
 import { mapProduct } from './productMap';
 import type { Product } from './types';
+import { getSiteSettingsServer } from './settingsServer';
+import { isProductTypeActive } from './productTypes';
 
 // Cada cuánto se refrescan los datos en caché (segundos). Es largo a
 // propósito: cada lectura de todo el catálogo gasta una lectura de Firestore
@@ -60,7 +62,10 @@ async function fetchJson(url: string, init?: RequestInit) {
 export async function getActiveProductsServer(opts: { demoFallback?: boolean } = {}): Promise<Product[]> {
   const fallback = opts.demoFallback !== false;
   if (!FIREBASE_CONFIG.projectId) {
-    if (fallback) return DEMO_PRODUCTS;
+    if (fallback) {
+      const { productTypes } = await getSiteSettingsServer();
+      return DEMO_PRODUCTS.filter((p) => isProductTypeActive(p, productTypes));
+    }
     throw new Error('Firebase sin configurar');
   }
   try {
@@ -72,7 +77,11 @@ export async function getActiveProductsServer(opts: { demoFallback?: boolean } =
       pageToken = json.nextPageToken ?? '';
       if (!pageToken) break;
     }
-    const active = all.filter((p) => p.active && p.slug).sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+    // Los productos de un tipo pausado (ej: Camisetas) no salen en la tienda.
+    const { productTypes } = await getSiteSettingsServer();
+    const active = all
+      .filter((p) => p.active && p.slug && isProductTypeActive(p, productTypes))
+      .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
     return active;
   } catch (err) {
     // Nunca productos de demostración en la tienda real: mejor vacío.

@@ -10,6 +10,7 @@ import PaymentBadges from '@/components/PaymentBadges';
 import { HELP_PAGES } from '@/lib/help-pages';
 import PaymentLogos, { CourierLogo } from '@/components/brand/PaymentLogos';
 import { WhatsAppIcon } from './icons';
+import { storeTypes } from '@/lib/productTypes';
 
 const SOCIALS: { key: 'instagram' | 'facebook' | 'tiktok' | 'youtube'; label: string }[] = [
   { key: 'instagram', label: 'Instagram' },
@@ -98,7 +99,7 @@ export default function Footer() {
         <div>
           <h4 className="mb-4 text-xs font-extrabold uppercase tracking-[0.2em] text-primary-light">Comprar</h4>
           <ul className="space-y-2.5 text-sm text-white/75">
-            {productTypes.map((t) => (
+            {storeTypes(productTypes).map((t) => (
               <li key={t.value}>
                 <Link href={`/catalogo?tipo=${encodeURIComponent(t.value)}`} className="hover:text-white">
                   {t.label}

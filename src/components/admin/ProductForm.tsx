@@ -669,6 +669,7 @@ export default function ProductForm({ product }: { product?: Product }) {
                 }`}
               >
                 {t.icon} {t.label}
+                {t.active === false && <span className="ml-1 text-[10px] font-extrabold uppercase text-urgent">(pausado)</span>}
               </button>
             ))}
             <a href="/admin/configuracion#tipos" className="self-center text-xs font-bold text-muted underline">

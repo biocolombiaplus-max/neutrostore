@@ -116,6 +116,9 @@ export interface ProductType {
   image: string;
   // Texto corto de la tarjeta (ej: "Plataformas, slides y tachas").
   sub: string;
+  // false = pausado: no aparece en la tienda (menú, portada, catálogo) y sus
+  // productos se ocultan, pero nada se borra. Sin valor = activo.
+  active?: boolean;
 }
 
 export type ProductInput = Omit<Product, 'id' | 'createdAt' | 'updatedAt'>;

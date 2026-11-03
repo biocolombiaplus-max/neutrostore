@@ -19,6 +19,20 @@ export function productTypeOf(product: Pick<Product, 'category'>, types: Product
   return types.find((t) => t.value === product.category) ?? types[0] ?? FALLBACK;
 }
 
+export function isTypeActive(type: ProductType): boolean {
+  return type.active !== false;
+}
+
+// Tipos que se muestran en la tienda (los pausados no).
+export function storeTypes(types: ProductType[]): ProductType[] {
+  return types.filter(isTypeActive);
+}
+
+// ¿El producto se ve en la tienda? No, si su tipo está pausado.
+export function isProductTypeActive(product: Pick<Product, 'category'>, types: ProductType[]): boolean {
+  return isTypeActive(productTypeOf(product, types));
+}
+
 export function isFootwear(type: ProductType): boolean {
   return type.sizeSystem === 'calzado';
 }

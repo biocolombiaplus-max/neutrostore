@@ -1796,6 +1796,7 @@ function ProductTypesEditor({ types, onChange }: { types: ProductType[]; onChang
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm font-extrabold text-ink">
               {t.icon} {t.label || 'Nuevo tipo'} {i === 0 && <span className="ml-1 rounded-full bg-gold-50 px-2 py-0.5 text-[10px] text-primary-dark">Principal</span>}
+              {t.active === false && <span className="ml-1 rounded-full bg-urgent/10 px-2 py-0.5 text-[10px] text-urgent">Pausado</span>}
             </p>
             <div className="flex items-center gap-1 text-sm">
               <button type="button" onClick={() => move(i, -1)} className="rounded-lg px-2 py-1 hover:bg-cream-alt" aria-label="Subir">↑</button>
@@ -1814,6 +1815,19 @@ function ProductTypesEditor({ types, onChange }: { types: ProductType[]; onChang
               </button>
             </div>
           </div>
+          <label
+            className={`mt-3 flex cursor-pointer items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm font-bold ring-1 ${
+              t.active === false ? 'bg-urgent/5 text-urgent ring-urgent/30' : 'bg-whatsapp/10 text-[#128C4B] ring-whatsapp/30'
+            }`}
+          >
+            <span>
+              {t.active === false ? '⏸️ Pausado: no se muestra en la tienda' : '✅ Activo en la tienda'}
+              <span className="block text-[11px] font-semibold text-muted">
+                Pausarlo oculta este tipo y sus productos de la tienda, sin borrar nada. Lo vuelves a activar cuando quieras.
+              </span>
+            </span>
+            <input type="checkbox" checked={t.active !== false} onChange={(e) => edit(i, { active: e.target.checked })} className="h-5 w-5" />
+          </label>
           <div className="mt-3 grid gap-3 sm:grid-cols-[80px_1fr_1fr]">
             <Field label="Ícono">
               <input value={t.icon} onChange={(e) => edit(i, { icon: e.target.value })} className={inputClass} placeholder="👕" />
