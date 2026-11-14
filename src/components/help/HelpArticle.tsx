@@ -256,6 +256,23 @@ function MetodosPago() {
   const ex = prices?.example ?? null;
   return (
     <div className="space-y-5">
+      {payments.onlineReady && (
+        <Block title="💳 Pago en línea: tarjeta, PSE o Nequi" className="ring-2 ring-primary/40">
+          <p>
+            Paga con tarjeta débito o crédito, PSE desde cualquier banco, Nequi o Botón Bancolombia en <strong className="text-ink">Wompi</strong>,
+            la pasarela segura de Bancolombia. Tus datos de pago nunca pasan por nuestra tienda.
+          </p>
+          <List
+            items={[
+              ex
+                ? `Pagas el producto + el envío en un solo pago. Ej: ${ex.title} ${formatPrice(ex.price)} + envío = ${formatPrice(ex.price + shipping.defaultRate)}.`
+                : 'Pagas el producto + el envío en un solo pago.',
+              'Apenas se aprueba el pago ves la confirmación y despachamos tu pedido el mismo día.',
+              'Si el pago no se aprueba no se hace ningún cobro y puedes intentarlo de nuevo o pagar contra entrega.',
+            ]}
+          />
+        </Block>
+      )}
       <div className="grid gap-5 md:grid-cols-2">
         <Block title="🏦 Transferencia o depósito">
           <p>

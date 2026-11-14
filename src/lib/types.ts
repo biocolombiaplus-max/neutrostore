@@ -192,6 +192,10 @@ export interface Order {
   // "whatsapp": el cliente confirmó su pedido por WhatsApp desde la web (la
   // venta se cierra en el chat y luego se marca en el panel).
   channel?: 'whatsapp';
+  // Pago en línea con Wompi (tarjeta, PSE, Nequi, Bancolombia). El pedido se
+  // guarda como "transferencia" (pago completo por adelantado) y aquí queda
+  // el detalle del pago. Lo actualiza el panel al verificar con Wompi.
+  payment?: OnlinePayment;
   // Datos del anuncio que trajo al cliente (para avisar la venta a Meta al cerrarla).
   tracking?: {
     vid?: string;
@@ -206,6 +210,20 @@ export interface Order {
     metaAd?: boolean;
   };
   createdAt: number;
+}
+
+export type WompiStatus = 'PENDING' | 'APPROVED' | 'DECLINED' | 'VOIDED' | 'ERROR';
+
+export interface OnlinePayment {
+  provider: 'wompi';
+  // Referencia enviada a Wompi: <pedido>-P<intento> (ej. NS-20261114-1234-P1).
+  reference: string;
+  status: WompiStatus;
+  transactionId?: string;
+  // CARD, PSE, NEQUI, BANCOLOMBIA_TRANSFER...
+  methodType?: string;
+  amountInCents?: number;
+  checkedAt?: number;
 }
 
 export type OrderInput = Omit<Order, 'id' | 'createdAt' | 'orderNumber'>;
@@ -281,6 +299,12 @@ export interface PaymentSettings {
   defaultPrice: number;
   bankAccounts: BankAccount[];
   transferNote: string;
+  // Pago en línea con Wompi (tarjeta, PSE, Nequi, Botón Bancolombia).
+  // false = se oculta aunque esté configurado. Sin valor = activo.
+  onlineEnabled?: boolean;
+  // Calculado en el servidor (no se guarda): Wompi está configurado en
+  // Vercel y activo, así que la tienda muestra el pago en línea.
+  onlineReady?: boolean;
 }
 
 // Marca estrella: la que más vende la tienda. Se destaca con un bloque

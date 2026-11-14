@@ -1,6 +1,6 @@
 import { collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, orderBy, query, limit, onSnapshot, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Carrier, CartItem, Order, OrderCustomer, OrderInput, OrderStatus, PaymentMethod } from './types';
+import type { Carrier, CartItem, OnlinePayment, Order, OrderCustomer, OrderInput, OrderStatus, PaymentMethod } from './types';
 import { generateOrderNumber, stripUndefined } from './utils';
 import { saveLocalOrder } from './localOrders';
 export { getLastLocalOrder, getLocalOrder, notifyOrderByEmail, notifyOrderByPush } from './localOrders';
@@ -29,6 +29,7 @@ function toOrder(id: string, data: any): Order {
     couponCode: data.couponCode || undefined,
     channel: data.channel === 'whatsapp' ? 'whatsapp' : undefined,
     tracking: data.tracking || undefined,
+    payment: data.payment?.provider === 'wompi' ? data.payment : undefined,
     createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toMillis() : Date.now(),
   };
 }
@@ -81,6 +82,11 @@ export async function getAllOrders(): Promise<Order[]> {
 
 export async function updateOrderStatus(id: string, status: OrderStatus): Promise<void> {
   await updateDoc(doc(db, COLLECTION, id), { status });
+}
+
+// Estado del pago en línea (Wompi) verificado desde el panel.
+export async function updateOrderPayment(id: string, payment: OnlinePayment): Promise<void> {
+  await updateDoc(doc(db, COLLECTION, id), { payment: stripUndefined(payment) });
 }
 
 // Marca o desmarca un pedido como venta de una campaña de Meta Ads (cuenta

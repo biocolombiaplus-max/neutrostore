@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ecLocal, isEcMobile, savedPhone } from '@/lib/phone';
 import { visitorContact } from '@/lib/visitor';
 import EcPhoneInput from './EcPhoneInput';
+import Link from 'next/link';
 
 // Botones del carrito: van directo a WhatsApp con el resumen y las fotos de
 // todos los productos, según cómo quiera pagar.
@@ -35,11 +36,28 @@ export default function CartWhatsAppButtons({ onDone }: { onDone?: () => void })
 
   return (
     <div className="space-y-2.5">
+      {settings.payments.onlineReady && (
+        <>
+          <Link
+            href="/checkout?metodo=online"
+            onClick={() => onDone?.()}
+            className="btn-primary btn-shine w-full flex-col gap-0.5 py-3.5"
+          >
+            <span>💳 Pagar en línea · tarjeta, PSE o Nequi</span>
+            <span className="text-[11px] font-bold normal-case tracking-normal opacity-80">
+              {formatPrice(now.total)} con envío · aprobación inmediata
+            </span>
+          </Link>
+          <p className="flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[0.2em] text-muted">
+            <span className="h-px flex-1 bg-border" /> o pide por WhatsApp <span className="h-px flex-1 bg-border" />
+          </p>
+        </>
+      )}
       <div>
         <p className={`text-sm font-black ${tried && !phoneOk ? 'text-urgent' : 'text-ink'}`}>Tu número de WhatsApp</p>
         <p className="mb-2 text-[11px] text-muted">Para enviarte la foto real de tu par y tu guía de envío 📦</p>
         <EcPhoneInput ref={inputRef} value={phone} onChange={setPhone} invalid={tried && !phoneOk} />
-        {tried && !phoneOk && <p className="mt-1 text-xs font-semibold text-urgent">Escribe tu celular, ej: 99 123 4567</p>}
+        {tried && !phoneOk && <p className="mt-1 text-xs font-semibold text-urgent">Escribe tu celular, ej: 300 123 4567</p>}
       </div>
       {settings.payments.codEnabled && (
         <button type="button" onClick={() => go('contra_entrega')} className="btn-buy btn-shine btn-buy-pulse w-full flex-col gap-0.5 py-3.5">
@@ -54,7 +72,7 @@ export default function CartWhatsAppButtons({ onDone }: { onDone?: () => void })
         <span className="text-[11px] font-bold normal-case tracking-normal opacity-90">{formatPrice(now.total)} por transferencia, envío incluido</span>
       </button>
       <p className="text-center text-[11px] text-muted">
-        Se abre WhatsApp con tu pedido y las fotos: <strong className="text-ink">solo toca Enviar</strong>. No pagas nada en la página.
+        Se abre WhatsApp con tu pedido y las fotos: <strong className="text-ink">solo toca Enviar</strong>.
       </p>
     </div>
   );

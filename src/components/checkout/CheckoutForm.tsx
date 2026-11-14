@@ -11,6 +11,7 @@ import { buildOrderWhatsAppMessage, classNames, formatPrice, generateOrderNumber
 import { adTracking, trackPixel } from '@/lib/pixel';
 import { trackVisitorCheckoutItems, trackVisitorContact, trackVisitorPurchase } from '@/lib/visitor';
 import type { CartItem, OrderCustomer, PaymentMethod } from '@/lib/types';
+import { startOnlinePayment } from '@/lib/wompiClient';
 
 const PROVINCES = getProvinces();
 
@@ -72,15 +73,29 @@ export default function CheckoutForm({
   items,
   initialMethod = 'transferencia',
   onSuccess,
+  onOnlineRedirect,
 }: {
   items: CartItem[];
-  initialMethod?: PaymentMethod;
+  initialMethod?: PaymentMethod | 'online';
   onSuccess: (orderId: string, opened: boolean) => void;
+  // Pago en línea: justo antes de salir hacia Wompi (vaciar el carrito).
+  onOnlineRedirect?: () => void;
 }) {
   const settings = useSiteSettings();
   const bank = settings.payments.bankAccounts[0];
   const codEnabled = settings.payments.codEnabled;
-  const [method, setMethod] = useState<PaymentMethod>(codEnabled ? initialMethod : 'transferencia');
+  const onlineReady = !!settings.payments.onlineReady;
+  // "online" = tarjeta, PSE, Nequi o Bancolombia con Wompi: se paga todo ya,
+  // así que los montos son los de transferencia.
+  const [online, setOnline] = useState(initialMethod === 'online' && onlineReady);
+  const [rawMethod, setMethod] = useState<PaymentMethod>(
+    initialMethod === 'online' ? 'transferencia' : codEnabled ? initialMethod : 'transferencia',
+  );
+  const method: PaymentMethod = online ? 'transferencia' : rawMethod;
+  const choose = (m: PaymentMethod | 'online') => {
+    setOnline(m === 'online');
+    if (m !== 'online') setMethod(m);
+  };
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [attempted, setAttempted] = useState(false);
   const [showNote, setShowNote] = useState(false);
@@ -127,8 +142,9 @@ export default function CheckoutForm({
     phone: !isValidPhone(form.phone),
     province: !form.province,
     city: !form.city,
-    // La dirección es opcional: el asesor la confirma por WhatsApp.
-    address: false,
+    // La dirección es opcional (el asesor la confirma por WhatsApp), salvo
+    // pagando en línea: ahí el pedido se despacha sin pasar por el chat.
+    address: online && form.address.trim().length < 5,
   };
   const hasErrors = Object.values(errors).some(Boolean);
 
@@ -168,12 +184,83 @@ export default function CheckoutForm({
     setCouponInput('');
   }
 
+  function customerData(): OrderCustomer {
+    return {
+      name: form.name.trim(),
+      phone: form.phone.trim(),
+      province: form.province,
+      city: form.city,
+      address: form.address.trim(),
+      ...(form.cedula.trim() ? { cedula: form.cedula.trim() } : {}),
+      ...(form.reference.trim() ? { reference: form.reference.trim() } : {}),
+      ...(form.note.trim() ? { note: form.note.trim() } : {}),
+    };
+  }
+
+  // Pago en línea con Wompi: el servidor calcula y firma el monto, se
+  // registra el pedido (pendiente de pago) y se va a la pasarela segura.
+  async function payOnline() {
+    setSubmitting(true);
+    const orderNumber = generateOrderNumber();
+    const customer = customerData();
+    const couponCode = couponBlocked ? undefined : coupon?.code;
+    try {
+      const { url, reference, totals: paid } = await startOnlinePayment({
+        orderNumber,
+        attempt: 1,
+        items,
+        province: form.province,
+        couponCode,
+        customer,
+      });
+      const { createOrder } = await import('@/lib/orders');
+      await createOrder(
+        {
+          items,
+          subtotal: paid.subtotal,
+          discount: paid.discount,
+          shipping: paid.shipping,
+          total: paid.total,
+          payNow: paid.total,
+          payOnDelivery: 0,
+          customer,
+          paymentMethod: 'transferencia',
+          status: 'pendiente',
+          couponCode,
+          payment: { provider: 'wompi', reference, status: 'PENDING' },
+          tracking: adTracking(),
+        },
+        { orderNumber },
+      );
+      trackVisitorContact(customer.name, customer.phone);
+      trackPixel('AddPaymentInfo', { value: paid.total, currency: 'COP', content_ids: items.map((i) => i.metaId || i.productId) });
+      saveForm(form);
+      if (coupon && !couponBlocked) {
+        if (coupon.loyalty)
+          import('@/lib/loyalty')
+            .then(({ markLoyaltyCouponUsed }) => markLoyaltyCouponUsed(coupon.code, orderNumber))
+            .catch(() => {});
+        clearCoupon();
+      }
+      onOnlineRedirect?.();
+      window.location.href = url;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No pudimos iniciar el pago. Intenta de nuevo.');
+      setSubmitting(false);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
     setAttempted(true);
     if (hasErrors) {
       setError('Revisa los campos marcados en rojo, porfa.');
+      return;
+    }
+
+    if (online) {
+      await payOnline();
       return;
     }
 
@@ -345,7 +432,7 @@ export default function CheckoutForm({
           </Field>
         </div>
 
-        <Field label="Dirección" optional>
+        <Field label="Dirección" optional={!online} error={attempted && errors.address ? 'Escribe la dirección de entrega.' : ''}>
           <input
             placeholder="Calle principal, número y secundaria"
             autoComplete="street-address"
@@ -392,27 +479,59 @@ export default function CheckoutForm({
           <span className="flex h-7 w-7 items-center justify-center rounded-full bg-ink text-xs text-white">2</span>
           ¿Cómo quieres pagar?
         </legend>
+        {onlineReady && (
+          <button
+            type="button"
+            onClick={() => choose('online')}
+            aria-pressed={online}
+            className={classNames(
+              'relative mb-2.5 flex w-full items-center gap-3 rounded-2xl border-2 px-4 py-3.5 text-left transition-all',
+              online ? 'border-ink bg-ink text-white shadow-dark' : 'border-primary/60 bg-gold-50/60 text-ink hover:border-ink',
+            )}
+          >
+            {online && <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-whatsapp text-[10px] text-white">✓</span>}
+            <span className="text-2xl">💳</span>
+            <span className="min-w-0 flex-1 pr-4">
+              <span className="block text-sm font-black">Pagar en línea: tarjeta, PSE o Nequi</span>
+              <span className={classNames('mt-0.5 block text-[11px] leading-snug', online ? 'text-white/70' : 'text-muted')}>
+                {formatPrice(transferTotals.total)} · aprobación inmediata y despacho el mismo día
+              </span>
+            </span>
+            <span className="hidden shrink-0 rounded-full bg-gold-gradient px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wider text-ink sm:inline">
+              Más rápido
+            </span>
+          </button>
+        )}
         <div className={classNames('grid gap-2.5', codEnabled && 'grid-cols-2')}>
           {codEnabled && (
             <MethodChip
-              selected={method === 'contra_entrega'}
-              onSelect={() => setMethod('contra_entrega')}
+              selected={!online && method === 'contra_entrega'}
+              onSelect={() => choose('contra_entrega')}
               title="💵 Contra entrega"
               sub={`${formatPrice(codTotals.payOnDelivery)} al recibir + ${formatPrice(codTotals.payNow)} envío`}
             />
           )}
           <MethodChip
-            selected={method === 'transferencia'}
-            onSelect={() => setMethod('transferencia')}
-            title="⚡ Pagar ya"
+            selected={!online && method === 'transferencia'}
+            onSelect={() => choose('transferencia')}
+            title={onlineReady ? '🏦 Transferencia' : '⚡ Pagar ya'}
             sub={`${formatPrice(transferTotals.total)} por transferencia${coupon?.onlyMethod === 'transferencia' ? ` · -${coupon.percent}%` : ''}`}
           />
         </div>
         <p className="mt-2.5 rounded-xl bg-cream-alt/70 px-3 py-2.5 text-[12px] leading-snug text-ink">
-          💬 Un <strong>asesor real</strong> te confirma talla y disponibilidad por WhatsApp
-          {method === 'contra_entrega'
-            ? ` · tus sandalias las pagas en efectivo al recibirlas (${settings.shipping.deliveryTime}).`
-            : ' y te pasa la cuenta oficial Bancolombia.'}
+          {online ? (
+            <>
+              🔒 Pagas en <strong>Wompi</strong>, la pasarela segura de Bancolombia: tarjeta débito o crédito, PSE, Nequi o Botón Bancolombia. Tus
+              datos de pago nunca pasan por nuestra tienda.
+            </>
+          ) : (
+            <>
+              💬 Un <strong>asesor real</strong> te confirma talla y disponibilidad por WhatsApp
+              {method === 'contra_entrega'
+                ? ` · tus sandalias las pagas en efectivo al recibirlas (${settings.shipping.deliveryTime}).`
+                : ' y te pasa la cuenta oficial Bancolombia.'}
+            </>
+          )}
         </p>
       </fieldset>
 
@@ -488,9 +607,11 @@ export default function CheckoutForm({
 
           <div className="mt-4 grid grid-cols-2 gap-2 text-center">
             <div className="rounded-xl bg-ink p-3 text-white">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-primary-light">Para despachar</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-primary-light">{online ? 'Pagas ahora' : 'Para despachar'}</p>
               <p className="mt-0.5 text-xl font-black">{formatPrice(totals.payNow)}</p>
-              <p className="text-[10px] text-white/70">{method === 'contra_entrega' ? 'el envío, al confirmar por WhatsApp' : 'al confirmar por WhatsApp'}</p>
+              <p className="text-[10px] text-white/70">
+                {online ? 'en línea, de forma segura' : method === 'contra_entrega' ? 'el envío, al confirmar por WhatsApp' : 'al confirmar por WhatsApp'}
+              </p>
             </div>
             <div className="rounded-xl bg-white p-3 ring-1 ring-border">
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted">Pagas al recibir</p>
@@ -502,10 +623,17 @@ export default function CheckoutForm({
 
         {error && <p className="mt-4 rounded-xl bg-urgent/10 p-3 text-sm font-semibold text-urgent">{error}</p>}
 
-        <p className="mt-2 text-center text-xs text-muted">
-          Se abre WhatsApp con tu pedido listo: solo toca <strong className="text-ink">Enviar</strong>. Un asesor te responde y coordina el
-          pago contigo. <strong className="text-ink">No pagas nada en esta página.</strong>
-        </p>
+        {online ? (
+          <p className="mt-2 text-center text-xs text-muted">
+            Al tocar el botón te llevamos a <strong className="text-ink">Wompi</strong> para pagar. Apenas se apruebe, vuelves aquí con la
+            confirmación y despachamos tu pedido.
+          </p>
+        ) : (
+          <p className="mt-2 text-center text-xs text-muted">
+            Se abre WhatsApp con tu pedido listo: solo toca <strong className="text-ink">Enviar</strong>. Un asesor te responde y coordina el
+            pago contigo. <strong className="text-ink">No pagas nada en esta página.</strong>
+          </p>
+        )}
         <div className="mt-4 flex flex-col items-center gap-2 border-t border-border pt-4">
           <PaymentLogos size="sm" className="justify-center" />
           <p className="flex items-center gap-2 text-[11px] font-bold text-muted">
@@ -521,9 +649,15 @@ export default function CheckoutForm({
 
       {/* Botón siempre a la vista (fijo abajo mientras se llenan los datos). */}
       <div className="sticky bottom-0 z-10 -mx-5 mt-5 bg-gradient-to-t from-white via-white to-white/0 px-5 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-4">
-        <button type="submit" disabled={submitting} className="btn-whatsapp btn-shine w-full py-5 text-base">
-          {submitting ? 'Abriendo WhatsApp...' : '👉 Clic aquí para confirmar mi pedido por WhatsApp'}
-        </button>
+        {online ? (
+          <button type="submit" disabled={submitting} className="btn-primary btn-shine w-full py-5 text-base">
+            {submitting ? 'Conectando con la pasarela segura…' : `🔒 Pagar ${formatPrice(totals.total)} de forma segura`}
+          </button>
+        ) : (
+          <button type="submit" disabled={submitting} className="btn-whatsapp btn-shine w-full py-5 text-base">
+            {submitting ? 'Abriendo WhatsApp...' : '👉 Clic aquí para confirmar mi pedido por WhatsApp'}
+          </button>
+        )}
       </div>
     </form>
   );

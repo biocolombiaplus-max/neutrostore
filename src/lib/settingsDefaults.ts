@@ -154,6 +154,8 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     // 0 = contra entrega cobra el precio de cada producto.
     codUnitPrice: 0,
     defaultPrice: 80000,
+    // Pago en línea con Wompi (se ve cuando las llaves están en Vercel).
+    onlineEnabled: true,
     // Cuentas de ejemplo: reemplázalas desde el panel (Configuración → Pagos).
     bankAccounts: [
       {

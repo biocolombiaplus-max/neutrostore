@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { getAllOrders, updateOrderStatus, updateOrderContact, updateOrderMetaAd, reportPurchaseToMeta, updateOrderShipping, updateOrderGuide, deleteOrder } from '@/lib/orders';
+import { getAllOrders, updateOrderStatus, updateOrderContact, updateOrderMetaAd, updateOrderPayment, reportPurchaseToMeta, updateOrderShipping, updateOrderGuide, deleteOrder } from '@/lib/orders';
 import { getSiteSettings } from '@/lib/settings';
-import { CARRIERS, type Order, type OrderStatus, type Carrier, type BankAccount } from '@/lib/types';
+import { CARRIERS, type Order, type OrderStatus, type Carrier, type BankAccount, type OnlinePayment, type WompiStatus } from '@/lib/types';
+import { auth } from '@/lib/firebase';
+import { WOMPI_STATUS_LABELS, wompiMethodLabel } from '@/lib/wompi';
 import { buildPaymentDataMessage, buildShippedMessage, formatPrice, guidePageUrl, orderPhotoUrl, whatsappLinkTo } from '@/lib/utils';
 import { uploadProductImage } from '@/lib/storage';
 import { buildReviewRequestMessage, ensureLoyaltyForOrder } from '@/lib/loyalty';
@@ -50,13 +52,14 @@ function buildStatusMessage(order: Order, storeName: string): string {
   }
 }
 
-type Filter = 'todos' | 'por_cerrar' | 'cerradas' | 'no_compro' | 'meta';
+type Filter = 'todos' | 'por_cerrar' | 'cerradas' | 'no_compro' | 'meta' | 'online';
 
 const FILTERS: { value: Filter; label: string; match: (o: Order) => boolean }[] = [
   { value: 'por_cerrar', label: '💬 Por cerrar', match: (o) => o.status === 'pendiente' },
   { value: 'cerradas', label: '✅ Ventas cerradas', match: (o) => ['confirmado', 'enviado', 'entregado'].includes(o.status) },
   { value: 'no_compro', label: '✕ No compró', match: (o) => o.status === 'cancelado' },
   { value: 'meta', label: '📣 Meta Ads', match: (o) => !!o.tracking?.metaAd },
+  { value: 'online', label: '💳 Pagos en línea', match: (o) => o.payment?.provider === 'wompi' },
   { value: 'todos', label: 'Todos', match: () => true },
 ];
 
@@ -66,10 +69,14 @@ export default function AdminOrdersPage() {
   const [storeName, setStoreName] = useState('la tienda');
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [savingShipping, setSavingShipping] = useState<string | null>(null);
+  const [syncNote, setSyncNote] = useState('');
 
   useEffect(() => {
     getAllOrders()
-      .then(setOrders)
+      .then((list) => {
+        setOrders(list);
+        syncOnlinePayments(list);
+      })
       .catch(() => setOrders([]));
     getSiteSettings()
       .then((s) => {
@@ -78,6 +85,66 @@ export default function AdminOrdersPage() {
       })
       .catch(() => {});
   }, []);
+
+  // Pagos en línea (Wompi): se confirma con Wompi el estado real de cada
+  // pedido pagado en línea que aún no figura como aprobado. Si quedó aprobado,
+  // el pedido pasa solo a "Confirmado".
+  async function syncOnlinePayments(list: Order[], manual = false) {
+    const targets = list.filter((o) => o.payment?.provider === 'wompi' && o.payment.status !== 'APPROVED' && o.status !== 'cancelado');
+    if (targets.length === 0) {
+      if (manual) setSyncNote('No hay pagos en línea pendientes por verificar.');
+      return;
+    }
+    setSyncNote('🔄 Verificando pagos en línea con Wompi…');
+    try {
+      const token = await auth?.currentUser?.getIdToken();
+      const res = await fetch('/api/wompi/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token ?? ''}` },
+        body: JSON.stringify({ orders: targets.map((o) => ({ orderNumber: o.orderNumber, transactionId: o.payment?.transactionId })) }),
+      });
+      if (res.status === 503) {
+        setSyncNote('⚠️ Para verificar pagos en línea automáticamente falta la llave privada de Wompi en Vercel (WOMPI_PRIVATE_KEY).');
+        return;
+      }
+      if (!res.ok) throw new Error(String(res.status));
+      const { results } = (await res.json()) as {
+        results: Record<string, { id: string; status: WompiStatus; reference: string; amount_in_cents: number; payment_method_type?: string } | null>;
+      };
+      let approved = 0;
+      for (const o of targets) {
+        const tx = results[o.orderNumber];
+        if (!tx) continue;
+        const payment: OnlinePayment = {
+          provider: 'wompi',
+          reference: tx.reference,
+          status: tx.status,
+          transactionId: tx.id,
+          methodType: tx.payment_method_type,
+          amountInCents: tx.amount_in_cents,
+          checkedAt: Date.now(),
+        };
+        if (payment.status !== o.payment?.status || payment.transactionId !== o.payment?.transactionId) await updateOrderPayment(o.id, payment);
+        let status = o.status;
+        if (tx.status === 'APPROVED' && o.status === 'pendiente') {
+          await updateOrderStatus(o.id, 'confirmado');
+          reportPurchaseToMeta({ ...o, payment });
+          status = 'confirmado';
+          approved++;
+        }
+        setOrders((prev) => (prev ? prev.map((x) => (x.id === o.id ? { ...x, payment, status } : x)) : prev));
+      }
+      setSyncNote(
+        approved > 0
+          ? `✓ ${approved} ${approved === 1 ? 'pago en línea aprobado: el pedido quedó confirmado' : 'pagos en línea aprobados: los pedidos quedaron confirmados'}.`
+          : manual
+            ? '✓ Pagos en línea verificados con Wompi.'
+            : '',
+      );
+    } catch {
+      setSyncNote('No se pudo verificar con Wompi en este momento. Intenta de nuevo en un rato.');
+    }
+  }
 
   async function handleStatusChange(id: string, status: OrderStatus) {
     await updateOrderStatus(id, status);
@@ -126,6 +193,19 @@ export default function AdminOrdersPage() {
       </div>
 
       <WaTagsGuide />
+
+      {(syncNote || orders?.some((o) => o.payment?.provider === 'wompi')) && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-white px-4 py-3 text-sm shadow-soft ring-1 ring-border">
+          <span className="text-ink">{syncNote || '💳 Los pagos en línea se verifican con Wompi al abrir esta página.'}</span>
+          <button
+            type="button"
+            onClick={() => orders && syncOnlinePayments(orders, true)}
+            className="rounded-full bg-ink px-4 py-1.5 text-xs font-bold text-white hover:bg-primary hover:text-ink"
+          >
+            Verificar pagos en línea
+          </button>
+        </div>
+      )}
 
       {orders && orders.length > 0 && (
         <div className="-mx-1 mb-4 flex gap-2 overflow-x-auto px-1 pb-1">
@@ -305,6 +385,7 @@ function OrderCard({
             >
               {order.tracking?.metaAd ? '📣 Meta Ads' : '+ Marcar Meta Ads'}
             </button>
+            {order.payment?.provider === 'wompi' && <OnlinePaymentBadge payment={order.payment} total={order.total} />}
           </p>
           {order.tracking?.source && (
             <p className="text-[11px] text-muted">
@@ -336,7 +417,16 @@ function OrderCard({
         </div>
       </div>
 
-      {order.status === 'pendiente' && (
+      {order.status === 'pendiente' && order.payment?.provider === 'wompi' && (
+        <p className="mt-4 rounded-xl bg-[#1877F2]/[0.06] p-3 text-xs text-ink ring-1 ring-[#1877F2]/20">
+          💳 <strong>Pedido para pagar en línea.</strong>{' '}
+          {order.payment.status === 'PENDING'
+            ? 'El cliente aún no termina el pago (o el banco lo está confirmando). Cuando Wompi lo apruebe, este pedido se confirma solo al abrir Pedidos.'
+            : 'El pago no fue aprobado. Puedes escribirle por WhatsApp para ayudarle a pagar o cerrar la venta de otra forma.'}
+        </p>
+      )}
+
+      {order.status === 'pendiente' && order.payment?.provider !== 'wompi' && (
         <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl bg-gold-50 p-3 ring-1 ring-primary/30">
           <p className="min-w-0 flex-1 text-xs text-ink">
             <strong>¿Se cerró la venta en WhatsApp?</strong> Márcala para que cuente en las ventas.
@@ -541,7 +631,7 @@ function OrderCard({
           </span>
           <span className="ml-3 text-muted">Total: </span>
           <span className="font-bold text-primary">{formatPrice(order.total)}</span>
-          <span className="ml-3 text-muted">{PAYMENT_LABELS[order.paymentMethod]}</span>
+          <span className="ml-3 text-muted">{order.payment?.provider === 'wompi' ? 'Pago en línea (Wompi)' : PAYMENT_LABELS[order.paymentMethod]}</span>
           {order.paymentMethod === 'contra_entrega' && (
             <span className="ml-3 text-xs font-semibold text-ink">
               Adelanto: {formatPrice(order.payNow)} · Cobrar al entregar: {formatPrice(order.payOnDelivery)}
@@ -698,5 +788,27 @@ function WaTagsGuide() {
         </ul>
       </div>
     </details>
+  );
+}
+
+// Estado del pago en línea (Wompi) de un pedido.
+function OnlinePaymentBadge({ payment, total }: { payment: OnlinePayment; total: number }) {
+  const amount = payment.amountInCents != null ? payment.amountInCents / 100 : null;
+  const mismatch = payment.status === 'APPROVED' && amount != null && Math.round(amount) !== Math.round(total);
+  const cls =
+    payment.status === 'APPROVED'
+      ? 'bg-whatsapp/15 text-[#128C4B]'
+      : payment.status === 'PENDING'
+        ? 'bg-gold-100 text-primary-dark'
+        : 'bg-urgent/10 text-urgent';
+  const icon = payment.status === 'APPROVED' ? '💳 Pagado en línea' : payment.status === 'PENDING' ? '⏳ Pago en línea' : '✕ Pago en línea';
+  return (
+    <span
+      title={payment.transactionId ? `Wompi · transacción ${payment.transactionId} · referencia ${payment.reference}` : `Wompi · referencia ${payment.reference}`}
+      className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider ${cls}`}
+    >
+      {icon} · {payment.status === 'APPROVED' ? `${wompiMethodLabel(payment.methodType)}${amount != null ? ` · ${formatPrice(amount)}` : ''}` : WOMPI_STATUS_LABELS[payment.status]}
+      {mismatch ? ' · ⚠️ monto distinto al pedido' : ''}
+    </span>
   );
 }

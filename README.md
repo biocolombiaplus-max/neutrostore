@@ -188,6 +188,30 @@ Esto sube los 15 modelos del catálogo de demostración — entra a
 Cada vez que hagas `git push` a la rama conectada, Vercel vuelve a desplegar
 automáticamente.
 
+## Pago en línea con Wompi (tarjeta, PSE, Nequi, Botón Bancolombia)
+
+El cliente puede pagar en línea desde la ficha del producto, el carrito o el
+checkout. El **servidor** calcula el total con los precios reales de la base
+de datos y lo firma con la llave de integridad: nadie puede cambiar el monto.
+Al volver de Wompi, la página `/pago` muestra si el pago quedó aprobado, en
+proceso (PSE/Nequi) o rechazado (con botón para reintentar). En el panel, los
+pedidos pagados en línea se verifican solos con Wompi y pasan a Confirmado.
+
+Configuración (una vez), en **Vercel → Settings → Environment Variables**
+(las llaves secretas nunca van en el código, el repositorio es público):
+
+| Variable | Valor (Wompi → Desarrolladores) |
+|---|---|
+| `WOMPI_INTEGRITY_SECRET` | Secreto de integridad (`prod_integrity_…`) — obligatorio |
+| `WOMPI_PRIVATE_KEY` | Llave privada (`prv_prod_…`) — confirma pagos en el panel |
+| `WOMPI_EVENTS_SECRET` | Secreto de eventos (`prod_events_…`) — avisos de pago |
+| `NEXT_PUBLIC_WOMPI_PUBLIC_KEY` | Llave pública (`pub_prod_…`) — opcional, ya viene en el código |
+
+Luego **Redeploy**, y en Wompi → Desarrolladores → **URL de eventos** pega
+`https://neutrostore.vercel.app/api/wompi/events`. En el panel,
+**Configuración → 💳 Pagos en línea → Revisar conexión con Wompi** confirma
+que todo quedó bien.
+
 ## Comisión de la agencia (Biomarketing) por ventas de Meta Ads
 
 Biomarketing gana **$5.000 por cada venta confirmada** que viene de sus

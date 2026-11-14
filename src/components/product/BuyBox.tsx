@@ -12,6 +12,7 @@ import { productMessage, useWaContext } from '@/lib/wa-messages';
 import type { PaymentMethod, Product } from '@/lib/types';
 import { classNames, formatPrice, resolveColorImage, whatsappLinkTo } from '@/lib/utils';
 import { useCartStore } from '@/lib/cart-store';
+import { useRouter } from 'next/navigation';
 import { computeOrderTotals } from '@/lib/shipping';
 import { useSiteSettings } from '@/lib/settings-context';
 import SafeImage from '../SafeImage';
@@ -39,6 +40,8 @@ export default function BuyBox({
   const settings = useSiteSettings();
   const { whatsappCountryCode, whatsappNumber, payments, shipping } = settings;
   const addItem = useCartStore((s) => s.addItem);
+  const closeCart = useCartStore((s) => s.close);
+  const router = useRouter();
   const [size, setSize] = useState('');
   const [color, setColor] = useState(product.colors[0]?.name ?? '');
   const [quantity, setQuantity] = useState(1);
@@ -46,7 +49,7 @@ export default function BuyBox({
   const [sizeError, setSizeError] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
   // Acción que quedó esperando la talla (se abre la hoja "Elige tu talla").
-  const [pending, setPending] = useState<{ type: 'buy'; method: PaymentMethod } | { type: 'cart' } | null>(null);
+  const [pending, setPending] = useState<{ type: 'buy'; method: PaymentMethod } | { type: 'cart' } | { type: 'online' } | null>(null);
 
   const discountPercent = discountPercentOf(product);
   const soldOut = product.stock <= 0;
@@ -108,7 +111,7 @@ export default function BuyBox({
   // Sin talla elegida se abre la hoja "Elige tu talla" y, al tocar una, la
   // compra sigue sola (antes solo se bajaba la página hasta el selector y
   // muchos creían que el botón no funcionaba).
-  function ensureSize(action: { type: 'buy'; method: PaymentMethod } | { type: 'cart' }, sizeOverride?: string): boolean {
+  function ensureSize(action: { type: 'buy'; method: PaymentMethod } | { type: 'cart' } | { type: 'online' }, sizeOverride?: string): boolean {
     if (!needsSize || sizeOverride || size) return true;
     setSizeError(true);
     setPending(action);
@@ -142,6 +145,23 @@ export default function BuyBox({
     setPending(null);
     if (action?.type === 'buy') openBuy(action.method, s || size, national);
     else if (action?.type === 'cart') handleAddToCart(s);
+    else if (action?.type === 'online') buyOnline(s);
+  }
+
+  // Pago en línea (tarjeta, PSE, Nequi): al checkout con este producto,
+  // donde se piden los datos de envío y se paga en Wompi.
+  function buyOnline(sizeOverride?: string) {
+    if (!ensureSize({ type: 'online' }, sizeOverride)) return;
+    addItem(buildItem(sizeOverride));
+    closeCart();
+    trackPixel('AddToCart', {
+      content_ids: [metaItemId(product, color)],
+      content_name: product.title,
+      content_type: 'product',
+      value: product.price * quantity,
+      currency: 'COP',
+    });
+    router.push('/checkout?metodo=online');
   }
 
   function handleAddToCart(sizeOverride?: string) {
@@ -350,7 +370,7 @@ export default function BuyBox({
         </div>
       </div>
 
-      {/* Botones de pago — todos terminan confirmando por WhatsApp */}
+      {/* Botones de pago: en línea (Wompi) o confirmando por WhatsApp */}
       <div ref={ctaRef} className="space-y-3">
         {soldOut ? (
           <a
@@ -376,16 +396,36 @@ export default function BuyBox({
               />
             )}
 
+            {payments.onlineReady && (
+              <PayOption
+                icon="💳"
+                title="Tarjeta, PSE o Nequi"
+                lines={[`${formatPrice(lineTotal + shippingFee)} con envío incluido · pago seguro en línea`, 'Aprobación inmediata · despacho el mismo día']}
+                cta={`Pagar en línea · ${formatPrice(lineTotal + shippingFee)}`}
+                onClick={() => buyOnline()}
+              />
+            )}
+
             <PayOption
               icon="⚡"
-              title="Pagar de inmediato"
+              title={payments.onlineReady ? 'Transferencia o depósito' : 'Pagar de inmediato'}
               lines={[`${formatPrice(lineTotal)} + ${formatPrice(shippingFee)} de envío por transferencia o depósito`, 'El precio más bajo · despacho el mismo día']}
               cta={`Pedir por WhatsApp · ${formatPrice(lineTotal + shippingFee)}`}
               onClick={() => openBuy('transferencia')}
             />
 
             <p className="pt-1 text-center text-[11px] text-muted">
-              Al tocar el botón se abre WhatsApp con tu pedido y su foto: <strong className="text-ink">solo toca Enviar</strong> y un asesor te atiende. No pagas nada en la página.
+              {payments.onlineReady ? (
+                <>
+                  💳 En línea pagas seguro con <strong className="text-ink">Wompi</strong> (Bancolombia). Con los demás botones se abre WhatsApp con
+                  tu pedido: <strong className="text-ink">solo toca Enviar</strong> y un asesor te atiende.
+                </>
+              ) : (
+                <>
+                  Al tocar el botón se abre WhatsApp con tu pedido y su foto: <strong className="text-ink">solo toca Enviar</strong> y un asesor te
+                  atiende. No pagas nada en la página.
+                </>
+              )}
             </p>
 
             <button
@@ -440,7 +480,7 @@ export default function BuyBox({
         availableSizes={product.sizes}
         productTitle={product.title}
         onPickSize={(s) => {
-          if (pending?.type === 'cart') {
+          if (pending?.type === 'cart' || pending?.type === 'online') {
             setGuideOpen(false);
             pickFromSheet(s);
             return;
@@ -452,7 +492,7 @@ export default function BuyBox({
 
       {pending && !guideOpen && (
         <OrderSheet
-          mode={pending.type}
+          mode={pending.type === 'buy' ? 'buy' : 'cart'}
           needsSize={needsSize}
           initialSize={size}
           initialPhone={savedPhone(visitorContact().phone)}
@@ -604,7 +644,7 @@ function OrderSheet({
             </p>
             <p className="mb-2 mt-0.5 text-xs text-muted">Para enviarte la foto real de tu par y tu guía de envío 📦</p>
             <EcPhoneInput value={phone} onChange={setPhone} invalid={tried && !phoneOk} autoFocus={!initialPhone && !needsSize} />
-            {tried && !phoneOk && <p className="mt-1 text-xs font-semibold text-urgent">Escribe tu celular, ej: 99 123 4567</p>}
+            {tried && !phoneOk && <p className="mt-1 text-xs font-semibold text-urgent">Escribe tu celular, ej: 300 123 4567</p>}
             {tried && !sizeOk && <p className="mt-1 text-xs font-semibold text-urgent">Elige tu talla arriba 👆</p>}
             <button type="submit" className={classNames('btn-buy btn-shine mt-4 w-full py-4', sizeOk && phoneOk && 'btn-buy-pulse')}>
               <WhatsAppIcon size={20} /> 👉 Pedir por WhatsApp

@@ -22,6 +22,7 @@ import type {
 } from '@/lib/types';
 import { CLOTHING_SIZES, sortSizeList } from '@/lib/productTypes';
 import { ADMIN_EMAIL, changeAdminPassword } from '@/lib/auth';
+import { auth } from '@/lib/firebase';
 import { formatPrice, slugify } from '@/lib/utils';
 import { PaymentLogoChip, CourierLogo } from '@/components/brand/PaymentLogos';
 import PhotoBackupCard from '@/components/admin/PhotoBackupCard';
@@ -694,6 +695,13 @@ export default function ConfiguracionPage() {
         {settings.metaPixelId && (
           <p className="mt-3 rounded-xl bg-whatsapp/10 px-4 py-3 text-sm font-semibold text-ink">✓ Píxel {settings.metaPixelId} activo en la tienda</p>
         )}
+      </Section>
+
+      <Section
+        title="💳 Pagos en línea (Wompi)"
+        description="Tarjeta débito o crédito, PSE, Nequi y Botón Bancolombia con la pasarela Wompi. El cliente paga en la tienda y el pedido se confirma solo."
+      >
+        <WompiSetup enabled={settings.payments.onlineEnabled !== false} onToggle={(v) => updatePayments('onlineEnabled', v)} />
       </Section>
 
       <Section
@@ -1962,5 +1970,122 @@ function PasswordSection() {
         {message && <p className={`text-sm font-semibold ${status === 'ok' ? 'text-whatsapp' : 'text-urgent'}`}>{message}</p>}
       </div>
     </Section>
+  );
+}
+
+interface WompiHealth {
+  publicKey: { ok: boolean; merchant: string; methods: string[]; test: boolean };
+  integritySecret: { ok: boolean };
+  privateKey: { ok: boolean; configured: boolean };
+  eventsSecret: { ok: boolean };
+  eventsUrl: string;
+}
+
+// Interruptor del pago en línea y revisión de la conexión con Wompi (las
+// llaves secretas van en Vercel, nunca en el panel ni en el código).
+function WompiSetup({ enabled, onToggle }: { enabled: boolean; onToggle: (value: boolean) => void }) {
+  const [health, setHealth] = useState<WompiHealth | null>(null);
+  const [checking, setChecking] = useState(false);
+  const [error, setError] = useState('');
+
+  async function check() {
+    setChecking(true);
+    setError('');
+    try {
+      const token = await auth?.currentUser?.getIdToken();
+      const res = await fetch('/api/wompi/health', { headers: { Authorization: `Bearer ${token ?? ''}` }, cache: 'no-store' });
+      if (!res.ok) throw new Error(String(res.status));
+      setHealth((await res.json()) as WompiHealth);
+    } catch {
+      setError('No se pudo revisar. Intenta de nuevo.');
+    } finally {
+      setChecking(false);
+    }
+  }
+
+  const rows = health
+    ? [
+        {
+          ok: health.publicKey.ok,
+          label: 'Llave pública',
+          detail: health.publicKey.ok
+            ? `Comercio: ${health.publicKey.merchant || 'activo'}${health.publicKey.test ? ' (modo PRUEBAS)' : ''}${
+                health.publicKey.methods.length ? ` · Medios: ${health.publicKey.methods.join(', ')}` : ''
+              }`
+            : 'Wompi no reconoce la llave pública. Revisa NEXT_PUBLIC_WOMPI_PUBLIC_KEY en Vercel.',
+        },
+        {
+          ok: health.integritySecret.ok,
+          label: 'Secreto de integridad (WOMPI_INTEGRITY_SECRET)',
+          detail: health.integritySecret.ok ? 'Configurado: los montos van firmados.' : 'Falta: sin él no se muestra el pago en línea.',
+        },
+        {
+          ok: health.privateKey.ok,
+          label: 'Llave privada (WOMPI_PRIVATE_KEY)',
+          detail: health.privateKey.ok
+            ? 'Correcta: el panel confirma los pagos solo.'
+            : health.privateKey.configured
+              ? 'Wompi la rechazó: revisa que esté completa y sea de producción.'
+              : 'Falta: los pagos no se confirmarán solos en Pedidos.',
+        },
+        {
+          ok: health.eventsSecret.ok,
+          label: 'Secreto de eventos (WOMPI_EVENTS_SECRET)',
+          detail: health.eventsSecret.ok ? 'Configurado: llegan los avisos de pago aprobado.' : 'Falta: no llegarán avisos al celular al aprobarse un pago.',
+        },
+      ]
+    : [];
+
+  return (
+    <div className="space-y-4">
+      <label
+        className={`flex cursor-pointer items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm font-bold ring-1 ${
+          enabled ? 'bg-whatsapp/10 text-[#128C4B] ring-whatsapp/30' : 'bg-urgent/5 text-urgent ring-urgent/30'
+        }`}
+      >
+        <span>
+          {enabled ? '✅ Pago en línea activo en la tienda' : '⏸️ Pago en línea apagado'}
+          <span className="block text-[11px] font-semibold text-muted">Se muestra cuando las llaves de Wompi están en Vercel. Se aplica al guardar.</span>
+        </span>
+        <input type="checkbox" checked={enabled} onChange={(e) => onToggle(e.target.checked)} className="h-5 w-5" />
+      </label>
+
+      <button type="button" onClick={check} disabled={checking} className="btn-dark w-full py-2.5 text-sm disabled:opacity-60 sm:w-auto">
+        {checking ? 'Revisando con Wompi…' : '🔍 Revisar conexión con Wompi'}
+      </button>
+      {error && <p className="text-sm font-semibold text-urgent">{error}</p>}
+
+      {health && (
+        <div className="space-y-2">
+          {rows.map((r) => (
+            <div key={r.label} className={`rounded-xl p-3 text-sm ring-1 ${r.ok ? 'bg-whatsapp/5 ring-whatsapp/25' : 'bg-urgent/5 ring-urgent/25'}`}>
+              <p className="font-bold text-ink">
+                {r.ok ? '✅' : '❌'} {r.label}
+              </p>
+              <p className="mt-0.5 text-xs text-muted">{r.detail}</p>
+            </div>
+          ))}
+          <div className="rounded-xl bg-cream-alt/70 p-3 text-xs text-ink">
+            <p className="font-bold">URL de eventos para Wompi</p>
+            <p className="mt-1 text-muted">En el panel de Wompi → Desarrolladores → URL de eventos, pega:</p>
+            <p className="mt-1 select-all break-all rounded-lg bg-white px-3 py-2 font-mono">{health.eventsUrl}</p>
+          </div>
+        </div>
+      )}
+
+      <details className="rounded-xl bg-cream-alt/50 p-3 text-xs text-muted">
+        <summary className="cursor-pointer font-bold text-ink">¿Dónde van las llaves de Wompi?</summary>
+        <p className="mt-2">
+          Por seguridad las llaves secretas NO se escriben aquí ni en el código: van en Vercel → tu proyecto → Settings → Environment Variables,
+          y luego Deployments → ⋯ → Redeploy:
+        </p>
+        <ul className="mt-2 space-y-1 font-mono">
+          <li>WOMPI_INTEGRITY_SECRET = prod_integrity_…</li>
+          <li>WOMPI_PRIVATE_KEY = prv_prod_…</li>
+          <li>WOMPI_EVENTS_SECRET = prod_events_…</li>
+          <li>NEXT_PUBLIC_WOMPI_PUBLIC_KEY = pub_prod_… (opcional)</li>
+        </ul>
+      </details>
+    </div>
   );
 }

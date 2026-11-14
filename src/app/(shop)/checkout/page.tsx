@@ -9,12 +9,14 @@ import { useCartStore } from '@/lib/cart-store';
 import { formatPrice } from '@/lib/utils';
 import CheckoutForm from '@/components/checkout/CheckoutForm';
 import SafeImage from '@/components/SafeImage';
+import { useSiteSettings } from '@/lib/settings-context';
 
 export default function CheckoutPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [done, setDone] = useState(false);
   const { items, clear } = useCartStore();
+  const onlineReady = !!useSiteSettings().payments.onlineReady;
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
   useEffect(() => setMounted(true), []);
@@ -38,17 +40,29 @@ export default function CheckoutPage() {
   }, [mounted, done, items.length, router]);
 
   if (!mounted || items.length === 0) return null;
+  // /checkout?metodo=online|contra_entrega|transferencia (botones de la ficha y el carrito).
+  const wanted = new URLSearchParams(window.location.search).get('metodo');
+  const initialMethod = wanted === 'online' || wanted === 'contra_entrega' || wanted === 'transferencia' ? wanted : undefined;
 
   return (
     <div className="container-page py-8 sm:py-12">
       <p className="section-eyebrow">🔒 Compra segura</p>
       <h1 className="section-title mt-2">Finalizar compra</h1>
-      <p className="mt-2 text-sm text-muted">3 pasos rapidito: confirmas por WhatsApp y un asesor te atiende. No pagas nada en esta página.</p>
+      <p className="mt-2 text-sm text-muted">
+        {onlineReady
+          ? '3 pasos rapidito: pagas en línea con tarjeta, PSE o Nequi, o confirmas por WhatsApp y un asesor te atiende.'
+          : '3 pasos rapidito: confirmas por WhatsApp y un asesor te atiende. No pagas nada en esta página.'}
+      </p>
 
       <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-12">
         <div className="order-2 lg:order-1">
           <CheckoutForm
             items={items}
+            initialMethod={initialMethod}
+            onOnlineRedirect={() => {
+              setDone(true);
+              clear();
+            }}
             onSuccess={(id, opened) => {
               setDone(true);
               clear();

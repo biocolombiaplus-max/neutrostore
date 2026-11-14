@@ -26,7 +26,8 @@ export default function PaymentMethods({ prices }: { prices: PriceSummary }) {
             Paga como <span className="text-gold-gradient">te quede mejor</span>
           </h2>
           <p className="mt-4 text-sm text-white/70 sm:text-base">
-            Pagas el precio de tu producto + el envío a toda Colombia. Tú eliges cuándo: todo ya, o el envío hoy y el resto al recibir.
+            Pagas el precio de tu producto + el envío a toda Colombia. Tú eliges cómo: en línea, por transferencia o el envío hoy y el resto al
+            recibir.
           </p>
           {range && (
             <p className="mx-auto mt-5 inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-full border border-primary/40 bg-white/[0.04] px-5 py-2 text-xs font-bold sm:text-sm">
@@ -39,7 +40,43 @@ export default function PaymentMethods({ prices }: { prices: PriceSummary }) {
           )}
         </div>
 
-        <div className="mx-auto mt-10 grid max-w-5xl gap-5 md:grid-cols-2">
+        {payments.onlineReady && (
+          <div className="relative mx-auto mt-10 max-w-5xl overflow-hidden rounded-3xl border border-primary/60 bg-gradient-to-r from-[#1a1508] via-[#0f0f0f] to-[#1a1508] p-6 sm:p-8">
+            <span className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[radial-gradient(circle,rgba(212,175,55,0.3),transparent_70%)]" />
+            <div className="relative grid items-center gap-6 md:grid-cols-[1fr_auto]">
+              <div>
+                <span className="inline-flex items-center gap-2 rounded-full bg-gold-gradient px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-ink">
+                  ⚡ Aprobación inmediata
+                </span>
+                <h3 className="mt-3 text-2xl font-black uppercase sm:text-3xl">💳 Paga en línea: tarjeta, PSE o Nequi</h3>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/75">
+                  Paga con tarjeta débito o crédito, PSE desde cualquier banco, Nequi o Botón Bancolombia, en la pasarela segura{' '}
+                  <strong className="text-white">Wompi de Bancolombia</strong>. Tus datos de pago nunca pasan por nuestra tienda y despachamos el
+                  mismo día.
+                </p>
+                {ex && (
+                  <p className="mt-3 text-sm font-bold text-primary-light">
+                    Ej: {ex.title} {formatPrice(ex.price)} + envío {formatPrice(shippingCost)} = {formatPrice(ex.price + shippingCost)} en un solo pago
+                  </p>
+                )}
+              </div>
+              <Link
+                href="/catalogo"
+                className="group btn-primary btn-shine shrink-0 justify-between gap-3 rounded-2xl px-5 py-4 text-left normal-case tracking-normal"
+              >
+                <span className="flex flex-col">
+                  <span className="text-[15px] font-black uppercase tracking-wide">Elegir y pagar en línea</span>
+                  <span className="text-[11px] font-bold opacity-75">🔒 Pago 100% seguro</span>
+                </span>
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink text-lg text-primary-light transition-transform group-hover:translate-x-1">
+                  →
+                </span>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        <div className={`mx-auto grid max-w-5xl gap-5 md:grid-cols-2 ${payments.onlineReady ? 'mt-5' : 'mt-10'}`}>
           {/* Transferencia */}
           <div className="relative flex flex-col overflow-hidden rounded-3xl border border-primary/50 bg-gradient-to-br from-white/10 to-white/[0.02] p-7 sm:p-9">
             <span className="absolute right-5 top-5 rounded-full bg-gold-gradient px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-ink">

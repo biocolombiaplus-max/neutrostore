@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import SiteChrome from '@/components/SiteChrome';
 import { getSiteSettingsServer } from '@/lib/settingsServer';
 import { googleFontsHref } from '@/lib/fonts';
+import { isWompiReady } from '@/lib/wompiServer';
 
 // Las páginas de la tienda dependen de datos en vivo de Firestore (productos,
 // carrito, pedidos), así que se renderizan siempre en el momento de la
@@ -15,7 +16,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ShopLayout({ children }: { children: React.ReactNode }) {
-  const settings = await getSiteSettingsServer();
+  const saved = await getSiteSettingsServer();
+  // Pago en línea (Wompi): solo si está configurado en el servidor y activo
+  // en el panel.
+  const settings = {
+    ...saved,
+    payments: { ...saved.payments, onlineReady: isWompiReady() && saved.payments.onlineEnabled !== false },
+  };
 
   return (
     <>
